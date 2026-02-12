@@ -273,11 +273,10 @@
                     opacity: 1,
                     fillOpacity: 0.8
                 });
-            }, // <--- This comma separates pointToLayer from style
-
+            }, 
             style: function(feature) {
                 return { color: "blue", weight: 2, fillOpacity: 0.1 };
-            }, // <--- This comma separates style from onEachFeature
+            }, 
 
             onEachFeature: function(feature, layer) {
                 if (feature.properties) {
@@ -288,11 +287,11 @@
                     layer.bindPopup(popupContent);
                 }
             }
-        }).addTo(map); // <--- Closes L.geoJSON and adds to map
+        }).addTo(map); 
 
         console.log("Shapefile successfully loaded!");
 
-    } catch (error) { // <--- This is the 'catch' the error was looking for
+    } catch (error) { 
         console.error("Error loading shapefile:", error);
     }
 } 
