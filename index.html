@@ -199,14 +199,14 @@
             });
         });
 
-// A "template" to keep all icons the same size
-const LeafIcon = L.Icon.extend({
-    options: {
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -30],
-        shadowUrl: '',
-    }
+        // A "template" to keep all icons the same size
+        const LeafIcon = L.Icon.extend({
+            options: {
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -30],
+                shadowUrl: ''
+            }
 });
 
 // Define a collection of icons
@@ -233,23 +233,37 @@ const icons = {
 
     // Add shapefiles layer
 
-async function addShapefileLayer(zipUrl) {
+    async function addShapefileLayer(zipUrl) {
     try {
         const geojsonData = await shp(zipUrl);
 
         L.geoJSON(geojsonData, {
             pointToLayer: function (feature, latlng) {
-    // 1. Get the category name from your Shapefile (e.g., 'Museum')
-    const category = feature.properties.Kategori || feature.properties.Typ; 
+                // 1. Get the category name
+                const category = feature.properties.Kategori || feature.properties.Typ; 
 
-    // 2. Look it up in our icons object. If it's not there, use 'default'.
-    const iconToUse = icons[category] || icons["default"];
+                // 2. Look it up in our icons object
+                const iconToUse = icons[category] || icons["default"];
 
-    return L.marker(latlng, { icon: iconToUse });
-},
+                const marker = L.marker(latlng, { icon: iconToUse });
+
+                // 3. FALLBACK LOGIC: 
+                // If the icon image is missing on the server, swap to default blue pin
+                marker.on('add', function() {
+                    if (marker._icon) {
+                        marker._icon.onerror = function() {
+                            marker.setIcon(new L.Icon.Default());
+                        };
+                    }
+                });
+
+                return marker;
+            },
+            
             style: function(feature) {
                 return { color: "blue", weight: 2, fillOpacity: 0.1 };
             },
+
             onEachFeature: function(feature, layer) {
                 if (feature.properties) {
                     let popupContent = "<strong>GIS Data:</strong><br>";
@@ -261,7 +275,7 @@ async function addShapefileLayer(zipUrl) {
             }
         }).addTo(map);
 
-        console.log("Shapefile with custom icons successfully added!");
+        console.log("Shapefile with custom icons and fallback protection added!");
     } catch (error) {
         console.error("Error loading shapefile:", error);
     }
