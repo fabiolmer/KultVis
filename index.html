@@ -208,14 +208,18 @@
 });
 
         // Function to load and display a zipped shapefile
-async function addShapefileLayer(zipUrl) {
+        async function addShapefileLayer(zipUrl) {
     try {
         // shp() fetches the zip and converts it to GeoJSON automatically
         const geojsonData = await shp(zipUrl);
 
         L.geoJSON(geojsonData, {
             style: function(feature) {
-                return { color: "blue", weight: 2, fillOpacity: 0.1 };
+                return {
+                    color: "blue",      // Matches your legend
+                    weight: 2,
+                    fillOpacity: 0.1
+                };
             },
             onEachFeature: function(feature, layer) {
                 // Creates a popup with all data attributes found in the shapefile
