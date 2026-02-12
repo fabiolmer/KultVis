@@ -199,28 +199,32 @@
             });
         });
 
+        // Define a custom icon  
+        var customIcon = L.icon({
+    iconUrl: 'your-icon-image.png', // The path to your icon file
+    iconSize: [32, 32],            // Size of the icon in pixels
+    iconAnchor: [16, 32],          // Point of the icon which will correspond to marker's location
+    popupAnchor: [0, -32]          // Point from which the popup should open relative to the iconAnchor
+});
+
         // Function to load and display a zipped shapefile
 async function addShapefileLayer(zipUrl) {
     try {
         // shp() fetches the zip and converts it to GeoJSON automatically
-        const geojsonData = await shp(zipUrl);
+        const data = await shp(zipPath); 
+        L.geoJSON(data, {
+            // 1. STYLE for lines and polygons (buildings/roads)
+            style: { color: "blue", weight: 2, fillOpacity: 0.2 },
 
-        L.geoJSON(geojsonData, {
-            style: function(feature) {
-                return {
-                    color: "blue",      // Matches your legend
-                    weight: 2,
-                    fillOpacity: 0.1
-                };
+            // 2. ICON for points (markers)
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, { icon: customIcon });
             },
+
+            // 3. POPUP for everything
             onEachFeature: function(feature, layer) {
-                // Creates a popup with all data attributes found in the shapefile
                 if (feature.properties) {
-                    let popupContent = "<strong>GIS Data:</strong><br>";
-                    for (let key in feature.properties) {
-                        popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
-                    }
-                    layer.bindPopup(popupContent);
+                    layer.bindPopup(Object.values(feature.properties).join("<br>"));
                 }
             }
         }).addTo(map);
