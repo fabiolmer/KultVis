@@ -207,62 +207,77 @@
                 popupAnchor: [0, -30],
                 shadowUrl: ''
             }
-});
+        });
 
-// Define a collection of icons
-const icons = {
-    "Ateljé": new LeafIcon({iconUrl: 'icons/circle.svg'}),
-    "Bibliotek": new LeafIcon({iconUrl: 'icons/library.png'}),
-    "Biograf": new LeafIcon({iconUrl: 'icons/cinema.png'}),
-    "Förberedande utbildning/Folkhögskola": new LeafIcon({iconUrl: 'icons/education.png'}),
-    "Fritidsgård": new LeafIcon({iconUrl: 'icons/youth-center.png'}),
-    "Gallerier": new LeafIcon({iconUrl: 'icons/gallery.png'}),
-    "Konsthall": new LeafIcon({iconUrl: 'icons/art-hall.png'}),
-    "Konstskola": new LeafIcon({iconUrl: 'icons/art-school.png'}),
-    "Kulturhus": new LeafIcon({iconUrl: 'icons/culture-house.png'}),
-    "Kulturskola": new LeafIcon({iconUrl: 'icons/music-school.png'}),
-    "Museum": new LeafIcon({iconUrl: 'icons/museum.png'}),
-    "Platser för evenemang": new LeafIcon({iconUrl: 'icons/event.png'}),
-    "Platser för seniorer": new LeafIcon({iconUrl: 'icons/senior.png'}),
-    "Replokaler": new LeafIcon({iconUrl: 'icons/rehearsal.png'}),
-    "Samlingslokaler/hembygdsgårdar": new LeafIcon({iconUrl: 'icons/community-hall.png'}),
-    "Scener inomhus": new LeafIcon({iconUrl: 'icons/stage.png'}),
-    "Studieförbund med egna lokaler": new LeafIcon({iconUrl: 'icons/study-org.png'}),
-    "default": new LeafIcon({iconUrl: 'icons/marker-default.png'})
-};
+        // Define a collection of icons
+        const icons = {
+            "Ateljé": new LeafIcon({iconUrl: 'icons/circle.svg'}),
+            "Bibliotek": new LeafIcon({iconUrl: 'icons/library.png'}),
+            "Biograf": new LeafIcon({iconUrl: 'icons/cinema.png'}),
+            "Förberedande utbildning/Folkhögskola": new LeafIcon({iconUrl: 'icons/education.png'}),
+            "Fritidsgård": new LeafIcon({iconUrl: 'icons/youth-center.png'}),
+            "Gallerier": new LeafIcon({iconUrl: 'icons/gallery.png'}),
+            "Konsthall": new LeafIcon({iconUrl: 'icons/art-hall.png'}),
+            "Konstskola": new LeafIcon({iconUrl: 'icons/art-school.png'}),
+            "Kulturhus": new LeafIcon({iconUrl: 'icons/culture-house.png'}),
+            "Kulturskola": new LeafIcon({iconUrl: 'icons/music-school.png'}),
+            "Museum": new LeafIcon({iconUrl: 'icons/museum.png'}),
+            "Platser för evenemang": new LeafIcon({iconUrl: 'icons/event.png'}),
+            "Platser för seniorer": new LeafIcon({iconUrl: 'icons/senior.png'}),
+            "Replokaler": new LeafIcon({iconUrl: 'icons/rehearsal.png'}),
+            "Samlingslokaler/hembygdsgårdar": new LeafIcon({iconUrl: 'icons/community-hall.png'}),
+            "Scener inomhus": new LeafIcon({iconUrl: 'icons/stage.png'}),
+            "Studieförbund med egna lokaler": new LeafIcon({iconUrl: 'icons/study-org.png'}),
+            "default": new LeafIcon({iconUrl: 'icons/marker-default.png'})
+        };
 
-    // Add shapefiles layer
+        // Add shapefiles layer
 
-    async function addShapefileLayer(zipUrl) {
+        async function addShapefileLayer(zipUrl) {
     try {
         const geojsonData = await shp(zipUrl);
 
         L.geoJSON(geojsonData, {
             pointToLayer: function (feature, latlng) {
-                // 1. Get the category name
                 const category = feature.properties.Kategori || feature.properties.Typ; 
+                const customIcon = icons[category];
 
-                // 2. Look it up in our icons object
-                const iconToUse = icons[category] || icons["default"];
+                if (customIcon) {
+                    const marker = L.marker(latlng, { icon: customIcon });
 
-                const marker = L.marker(latlng, { icon: iconToUse });
+                    marker.on('add', function() {
+                        if (marker._icon) {
+                            marker._icon.onerror = function() {
+                                const fallback = L.circleMarker(latlng, {
+                                    radius: 7,
+                                    fillColor: "#3388ff",
+                                    color: "#fff",
+                                    weight: 1,
+                                    opacity: 1,
+                                    fillOpacity: 0.8
+                                }).addTo(map);
+                                fallback.bindPopup(marker.getPopup().getContent());
+                                map.removeLayer(marker);
+                            };
+                        }
+                    });
+                    return marker;
+                } 
 
-                // 3. FALLBACK LOGIC: 
-                // If the icon image is missing on the server, swap to default blue pin
-                marker.on('add', function() {
-                    if (marker._icon) {
-                        marker._icon.onerror = function() {
-                            marker.setIcon(new L.Icon.Default());
-                        };
-                    }
+                // Default fallback to Circle if no icon is defined
+                return L.circleMarker(latlng, {
+                    radius: 6,
+                    fillColor: "#ff7800",
+                    color: "#000",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
                 });
+            }, // <--- This comma separates pointToLayer from style
 
-                return marker;
-            },
-            
             style: function(feature) {
                 return { color: "blue", weight: 2, fillOpacity: 0.1 };
-            },
+            }, // <--- This comma separates style from onEachFeature
 
             onEachFeature: function(feature, layer) {
                 if (feature.properties) {
@@ -273,13 +288,14 @@ const icons = {
                     layer.bindPopup(popupContent);
                 }
             }
-        }).addTo(map);
+        }).addTo(map); // <--- Closes L.geoJSON and adds to map
 
-        console.log("Shapefile with custom icons and fallback protection added!");
-    } catch (error) {
+        console.log("Shapefile successfully loaded!");
+
+    } catch (error) { // <--- This is the 'catch' the error was looking for
         console.error("Error loading shapefile:", error);
     }
-}
+} 
 
 // Call the function with your filename
 addShapefileLayer('kulturverksamheter_utdrag_GBG_251212.zip');
