@@ -245,7 +245,7 @@ async function addShapefileLayer(zipUrl) {
     const iconToUse = icons[category] || icons["default"];
 
     return L.marker(latlng, { icon: iconToUse });
-}
+},
             style: function(feature) {
                 return { color: "blue", weight: 2, fillOpacity: 0.1 };
             },
