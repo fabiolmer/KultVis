@@ -211,20 +211,20 @@
 async function addShapefileLayer(zipUrl) {
     try {
         // shp() fetches the zip and converts it to GeoJSON automatically
-        const data = await shp(zipPath); 
-        L.geoJSON(data, {
-            // 1. STYLE for lines and polygons (buildings/roads)
-            style: { color: "blue", weight: 2, fillOpacity: 0.2 },
+        const geojsonData = await shp(zipUrl);
 
-            // 2. ICON for points (markers)
-            pointToLayer: function (feature, latlng) {
-                return L.marker(latlng, { icon: customIcon });
+        L.geoJSON(geojsonData, {
+            style: function(feature) {
+                return { color: "blue", weight: 2, fillOpacity: 0.1 };
             },
-
-            // 3. POPUP for everything
             onEachFeature: function(feature, layer) {
+                // Creates a popup with all data attributes found in the shapefile
                 if (feature.properties) {
-                    layer.bindPopup(Object.values(feature.properties).join("<br>"));
+                    let popupContent = "<strong>GIS Data:</strong><br>";
+                    for (let key in feature.properties) {
+                        popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                    }
+                    layer.bindPopup(popupContent);
                 }
             }
         }).addTo(map);
