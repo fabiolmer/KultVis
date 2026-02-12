@@ -199,42 +199,56 @@
             });
         });
 
-        // Define a custom icon  
-        var customIcon = L.icon({
-    iconUrl: 'your-icon-image.png', // The path to your icon file
-    iconSize: [32, 32],            // Size of the icon in pixels
-    iconAnchor: [16, 32],          // Point of the icon which will correspond to marker's location
-    popupAnchor: [0, -32]          // Point from which the popup should open relative to the iconAnchor
-        });
-
-        // Function to load and display a zipped shapefile
- // 1. First, define the icon you want to use
-var studioIcon = L.icon({
-    iconUrl: 'your-icon-filename.png', // <-- Change this to your file name
-    iconSize: [32, 32],               // Size of the icon
-    iconAnchor: [16, 32],             // Point of the icon which will correspond to marker's location
-    popupAnchor: [0, -30]             // Point from which the popup should open relative to the iconAnchor
+// A "template" to keep all icons the same size
+const LeafIcon = L.Icon.extend({
+    options: {
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -30]
+    }
 });
+
+// Define a collection of icons
+const icons = {
+    "Ateljé": new LeafIcon({iconUrl: 'icons/studio.png'}),
+    "Bibliotek": new LeafIcon({iconUrl: 'icons/library.png'}),
+    "Biograf": new LeafIcon({iconUrl: 'icons/cinema.png'}),
+    "Förberedande utbildning/Folkhögskola": new LeafIcon({iconUrl: 'icons/education.png'}),
+    "Fritidsgård": new LeafIcon({iconUrl: 'icons/youth-center.png'}),
+    "Gallerier": new LeafIcon({iconUrl: 'icons/gallery.png'}),
+    "Konsthall": new LeafIcon({iconUrl: 'icons/art-hall.png'}),
+    "Konstskola": new LeafIcon({iconUrl: 'icons/art-school.png'}),
+    "Kulturhus": new LeafIcon({iconUrl: 'icons/culture-house.png'}),
+    "Kulturskola": new LeafIcon({iconUrl: 'icons/music-school.png'}),
+    "Museum": new LeafIcon({iconUrl: 'icons/museum.png'}),
+    "Platser för evenemang": new LeafIcon({iconUrl: 'icons/event.png'}),
+    "Platser för seniorer": new LeafIcon({iconUrl: 'icons/senior.png'}),
+    "Replokaler": new LeafIcon({iconUrl: 'icons/rehearsal.png'}),
+    "Samlingslokaler/hembygdsgårdar": new LeafIcon({iconUrl: 'icons/community-hall.png'}),
+    "Scener inomhus": new LeafIcon({iconUrl: 'icons/stage.png'}),
+    "Studieförbund med egna lokaler": new LeafIcon({iconUrl: 'icons/study-org.png'}),
+    "default": new LeafIcon({iconUrl: 'icons/marker-default.png'})
+};
+
+    // Add shapefiles layer
 
 async function addShapefileLayer(zipUrl) {
     try {
         const geojsonData = await shp(zipUrl);
 
         L.geoJSON(geojsonData, {
-            // This handles the points in your shapefile
             pointToLayer: function (feature, latlng) {
-                return L.marker(latlng, { icon: studioIcon });
-            },
+    // 1. Get the category name from your Shapefile (e.g., 'Museum')
+    const category = feature.properties.Kategori || feature.properties.Typ; 
 
-            // This handles the lines/polygons in your shapefile
+    // 2. Look it up in our icons object. If it's not there, use 'default'.
+    const iconToUse = icons[category] || icons["default"];
+
+    return L.marker(latlng, { icon: iconToUse });
+}
             style: function(feature) {
-                return {
-                    color: "blue",
-                    weight: 2,
-                    fillOpacity: 0.1
-                };
+                return { color: "blue", weight: 2, fillOpacity: 0.1 };
             },
-
             onEachFeature: function(feature, layer) {
                 if (feature.properties) {
                     let popupContent = "<strong>GIS Data:</strong><br>";
