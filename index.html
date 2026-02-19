@@ -239,29 +239,22 @@
 
         L.geoJSON(geojsonData, {
             pointToLayer: function (feature, latlng) {
+                // 1. Get the category name from your data
                 const category = feature.properties.Kategori || feature.properties.Typ; 
-                const customIcon = icons[category];
 
-                if (customIcon) {
-                    const marker = L.marker(latlng, { icon: customIcon });
+                // 2. Pick the color based on the map above, or use the default
+                const markerColor = categoryColors[category] || categoryColors["default"];
 
-                    marker.on('add', function() {
-                        if (marker._icon) {
-                            marker._icon.onerror = function() {
-                                const fallback = L.circleMarker(latlng, {
-                                    radius: 7,
-                                    fillColor: "#3388ff",
-                                    color: "#fff",
-                                    weight: 1,
-                                    opacity: 1,
-                                    fillOpacity: 0.8
-                                }).addTo(map);
-                                fallback.bindPopup(marker.getPopup().getContent());
-                                map.removeLayer(marker);
-                            };
-                        }
-                    });
-                    return marker;
+                // 3. Return a Circle Marker with that color
+                return L.circleMarker(latlng, {
+                    radius: 8,           // Size of the dot
+                    fillColor: markerColor,
+                    color: "#ffffff",    // Border color (white looks best)
+                    weight: 2,           // Border thickness
+                    opacity: 1,
+                    fillOpacity: 0.9     // Transparency of the dot
+                });
+            },
                 } 
 
                 // Default fallback to Circle if no icon is defined
@@ -274,6 +267,16 @@
                     fillOpacity: 0.8
                 });
             }, 
+            
+            const categoryColors = {
+    "Museum": "#e74c3c", // Red
+    "Bibliotek": "#3498db", // Blue
+    "Ateljé": "#9b59b6", // Purple
+    "Biograf": "#f1c40f", // Yellow
+    "Kulturhus": "#2ecc71", // Green
+    "default": "#95a5a6"  // Grey for anything else
+            };
+        
             style: function(feature) {
                 return { color: "blue", weight: 2, fillOpacity: 0.1 };
             }, 
