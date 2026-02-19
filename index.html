@@ -14,60 +14,30 @@
 
         /* Widgets */
         #heading-widget {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 0.4px solid #333;
-            border-radius: 5px;
-            z-index: 1000;
-            font-family: sans-serif;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            pointer-events: none;
+            position: absolute; top: 20px; right: 20px;
+            padding: 12px 20px; background: rgba(255, 255, 255, 0.9);
+            border: 0.4px solid #333; border-radius: 5px;
+            z-index: 1000; font-family: sans-serif;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
         }
 
         #activity-widget {
-            position: absolute;
-            top: 80px;
-            right: 20px;
-            z-index: 1000;
-            width: 400px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 0.4px solid #333;
-            border-radius: 5px;
-            font-family: sans-serif;
+            position: absolute; top: 80px; right: 20px;
+            z-index: 1000; width: 400px;
+            display: flex; flex-direction: column; padding: 15px;
+            background: rgba(255, 255, 255, 0.9); border: 0.4px solid #333;
+            border-radius: 5px; font-family: sans-serif;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            overflow: hidden;
-            pointer-events: auto;
         }
 
-        #widget-text {
-            width: 100%;
-            text-align: left;
-            padding-bottom: 10px;
-            line-height: 1.4;
-            font-weight: bold;
-        }
-
-        #widget-img {
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-            display: block;
-        }
+        #widget-text { padding-bottom: 10px; font-weight: bold; }
+        #widget-img { width: 100%; height: auto; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
-
     <div id="heading-widget">Gothenburg Film Studios</div>
-     
     <div id="activity-widget">
         <div id="widget-text">Activities</div>
         <img id="widget-img" src="activities_bar_graph.png" alt="activities bar graph">
@@ -77,39 +47,58 @@
         console.log("Script starting...");
         
         // 1. Initialize Map
-        var map = L.map('map').setView([57.70979563984074, 11.933439066392705], 17);
+        var map = L.map('map').setView([57.70979, 11.93344], 16);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Marker for the main studio
-        L.marker([57.70978419633951, 11.933471196174146]).addTo(map)
-            .bindPopup('Gothenburg Film Studios')
-            .openPopup();
-
-        // 2. Define Category Colors (Must be defined BEFORE the function)
+        // 2. Define Colors
         const categoryColors = {
-            "Museum": "#e74c3c", 
-            "Bibliotek": "#3498db", 
-            "Ateljé": "#9b59b6", 
-            "Biograf": "#f1c40f", 
-            "Kulturhus": "#2ecc71", 
-            "default": "#95a5a6" 
+            "Museum": "#e74c3c", "Bibliotek": "#3498db", "Ateljé": "#9b59b6", 
+            "Biograf": "#f1c40f", "Kulturhus": "#2ecc71", "default": "#95a5a6" 
         };
 
-        // 3. Static Campus Buildings Data
+        // 3. Draw Campus Buildings
         var campusData = [
-            {
-                name: "Studios building",
-                points: [[57.70951662524695, 11.931938382864644], [57.71001636019332, 11.932439974500426], [57.70951662524695, 11.931938382864644]] // Simplified for brevity
-            },
-            {
-                name: "Rehearsal building",
-                points: [[57.70928745782078, 11.932208794353187], [57.7093910062529, 11.932502670249931], [57.70928745782078,11.932208794353187]]
-            }
+            { name: "Studios building", points: [[57.70951, 11.93193], [57.71001, 11.93243], [57.70951, 11.93193]] },
+            { name: "Rehearsal building", points: [[57.70928, 11.93220], [57.70939, 11.93250], [57.70928, 11.93220]] }
         ];
 
-        var buildinglist = [];
+        campusData.forEach(function(building) {
+            var poly = L.polygon(building.points, { color: 'red', weight: 2, fillOpacity: 0.2 }).addTo(map);
+            poly.bindPopup(building.name);
+        });
 
-        campusData.
+        // 4. Load Shapefile
+        async function loadCulturalData() {
+            try {
+                // Ensure this file is in the SAME folder as your index.html
+                const geojsonData = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
+                
+                L.geoJSON(geojsonData, {
+                    pointToLayer: function (feature, latlng) {
+                        const category = feature.properties.Kategori || feature.properties.Typ; 
+                        const color = categoryColors[category] || categoryColors["default"];
+                        return L.circleMarker(latlng, {
+                            radius: 8,
+                            fillColor: color,
+                            color: "#fff",
+                            weight: 2,
+                            fillOpacity: 0.9
+                        });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup("<strong>" + (feature.properties.Namn || "Cultural Site") + "</strong>");
+                    }
+                }).addTo(map);
+                console.log("Shapefile loaded!");
+            } catch (err) {
+                console.error("Shapefile Error:", err);
+            }
+        }
+
+        loadCulturalData();
+    </script>
+</body>
+</html>
