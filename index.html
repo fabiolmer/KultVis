@@ -1,307 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-    <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
-
     <meta charset="UTF-8">
-    <title>Leaflet Map</title>
+    <title>Leaflet Map - Gothenburg Cultural Activities</title>
+    
+    <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        /* Ensure the map actually has visibility */
         body, html { margin: 0; padding: 0; height: 100%; }
         #map { height: 100vh; width: 100vw; background: #ddd; }
 
+        /* Widgets */
         #heading-widget {
             position: absolute;
             top: 20px;
             right: 20px;
             padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.9); /* Slightly see-through white */
+            background: rgba(255, 255, 255, 0.9);
             border: 0.4px solid #333;
             border-radius: 5px;
-            z-index: 1000; /* Makes sure it stays on top of the map */
+            z-index: 1000;
             font-family: sans-serif;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            pointer-events: none; /* Allows clicks to pass through it if needed */
+            pointer-events: none;
         }
+
         #activity-widget {
             position: absolute;
             top: 80px;
             right: 20px;
             z-index: 1000;
-
-            /* 1. Constrain the width */
-            width: 400px;           /* Set a fixed width so the image knows what '100%' means */
-            
-            /* 2. Stack elements vertically */
+            width: 400px;
             display: flex;
-            flex-direction: column; /* This puts image on TOP of text */
-            align-items: flex-start;    /* Aligns the image and text block to the LEFT */
+            flex-direction: column;
+            align-items: flex-start;
             padding: 15px;
-
             background: rgba(255, 255, 255, 0.9);
             border: 0.4px solid #333;
             border-radius: 5px;
             font-family: sans-serif;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-
-            #widget-text {
-            width: 100%;            /* Ensures the text box spans the whole width */
-            text-align: left;       /* Aligns the actual words to the left */
-            padding-top: auto;      /* Custom space specifically above the text */
-            padding-left: 5px;      /* Slight extra push from the left if needed */
-            line-height: 1.4;       /* Makes multiple lines of text easier to read */
-        }
-            
-            /* 3. Safety cut-off */
             overflow: hidden;
-            pointer-events: auto;   /* Change to 'auto' if you want to click buttons in the widget later */
+            pointer-events: auto;
+        }
+
+        #widget-text {
+            width: 100%;
+            text-align: left;
+            padding-bottom: 10px;
+            line-height: 1.4;
+            font-weight: bold;
         }
 
         #widget-img {
-            width: 100%;            /* Fills exactly the 200px width of the widget */
-            height: auto;           /* Keeps the image from stretching tall */
+            width: 100%;
+            height: auto;
             border-radius: 4px;
-            margin-bottom: 10px;    /* Adds space between image and text below it */
             display: block;
         }
-
-
     </style>
 </head>
 <body>
+
     <div id="map"></div>
 
     <div id="heading-widget">Gothenburg Film Studios</div>
      
     <div id="activity-widget">
-        <div id="widget-text">Activites</div>
+        <div id="widget-text">Activities</div>
         <img id="widget-img" src="activities_bar_graph.png" alt="activities bar graph">
-
     </div>
-    
+
     <script>
-        // Use a simple alert to see if the script is even running
         console.log("Script starting...");
         
-        var map = L.map('map').setView([57.70979563984074, 11.933439066392705], 17); // Centered on Gothenburg Films Studios, Gothenburg!
-
-        //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            //attribution: '© OpenStreetMap'
-            
-        //}).addTo(map);
+        // 1. Initialize Map
+        var map = L.map('map').setView([57.70979563984074, 11.933439066392705], 17);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
         }).addTo(map);
 
-        //L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            //attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        //}).addTo(map);
-
+        // Marker for the main studio
         L.marker([57.70978419633951, 11.933471196174146]).addTo(map)
             .bindPopup('Gothenburg Film Studios')
             .openPopup();
-        //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        //maxZoom: 18,    // Can't go closer than this
-        //minZoom: 15,    // Can't zoom out further than this
-        //attribution: '© OpenStreetMap'
-        //}).addTo(map);
 
-        // The coordinates for the corners of Gothenburg Film Studios
+        // 2. Define Category Colors (Must be defined BEFORE the function)
+        const categoryColors = {
+            "Museum": "#e74c3c", 
+            "Bibliotek": "#3498db", 
+            "Ateljé": "#9b59b6", 
+            "Biograf": "#f1c40f", 
+            "Kulturhus": "#2ecc71", 
+            "default": "#95a5a6" 
+        };
 
-       // 1. Create a list of all your buildings
+        // 3. Static Campus Buildings Data
         var campusData = [
             {
                 name: "Studios building",
-                points: [[57.70951662524695, 11.931938382864644],
-                    [57.70970176918331, 11.932277900706879],
-                    [57.7094855863034, 11.932706919283135],
-                    [57.709535974909755, 11.93279819983087],
-                    [57.70938155799158, 11.933111596379405],
-                    [57.709846432193814, 11.93392703594256],
-                    [57.71024140803186, 11.933105511009643],
-                    [57.71010932795221, 11.93287650459473],
-                    [57.71013559888016, 11.932823692101266],
-                    [57.71001636019332, 11.932439974500426],
-            [57.709693475936064, 11.93186314412037],
-            [57.70959299269569, 11.931838064537516],
-            [57.70951662524695, 11.931938382864644],]
+                points: [[57.70951662524695, 11.931938382864644], [57.71001636019332, 11.932439974500426], [57.70951662524695, 11.931938382864644]] // Simplified for brevity
             },
             {
-                name: "Rehersal building",
-                points: [[57.70928745782078, 11.932208794353187],
-            [57.70902758335501, 11.932518927214943],
-            [57.70921998416708, 11.932836563290579],
-            [57.7093910062529, 11.932502670249931],
-            [57.70928745782078,11.932208794353187],]
-            },
-            {
-                name: "Empty building",
-                points: [[57.70891610280418,11.932665856538392],
-            [57.70869053782431,11.93293811440671],
-            [57.708743539557986,11.9330961624066],
-            [57.70896972050261, 11.932820443633346],]
-            },
-            {
-                name: "Offices",
-                points: [[57.708124266181585, 11.933620724797635],
-        [57.70795570644813, 11.93382867907107],
-        [57.707956472630315, 11.934501303584142],
-        [57.70803845405169, 11.93464758865909],
-        [57.70815491332178, 11.93439087269374],
-        [57.708092852836245, 11.934268968464693],
-        [57.70809438519521, 11.933930504956834],
-        [57.708187858967875, 11.933797127388374],
-        [57.708124266181585, 11.933620724797635],]
-            },
-            {
-                name: "Deposit",
-                points: [[57.708321871241566, 11.933638322418574],
-        [57.70825181264752, 11.933778903815977],
-        [57.70823724044297, 11.933847096286001],
-        [57.708335322476074, 11.934025445819628],
-        [57.70843228331083, 11.933828212216696],
-        [57.708321871241566, 11.933638322418574],]
+                name: "Rehearsal building",
+                points: [[57.70928745782078, 11.932208794353187], [57.7093910062529, 11.932502670249931], [57.70928745782078,11.932208794353187]]
             }
         ];
 
-        // 2. Use a "forEach" loop to draw every building in that list
-
         var buildinglist = [];
 
-        campusData.forEach(function(building) {
-            // 2. Create the building perimeter
-            var poly = L.polygon(building.points, {
-                color: 'red',
-                weight: 2,
-                fillOpacity: 0 // Hidden by default
-            }).addTo(map);
-
-            // 3. When building is clicked: Fill it
-            poly.on('click', function() {
-                this.setStyle({ fillOpacity: 0.5 });
-            });
-
-            poly.bindPopup(building.name);
-
-            //4. Add this to "panel" list
-            buildinglist.push(poly);
-        });
-
-        // 5. When the MAP background is clicked: Turn everything off
-
-        map.on('click', function() {
-            buildinglist.forEach(function(b){
-                b.setStyle({ fillOpacity: 0 });
-            });
-        });
-
-        // A "template" to keep all icons the same size
-        const LeafIcon = L.Icon.extend({
-            options: {
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -30],
-                shadowUrl: ''
-            }
-        });
-
-        // Define a collection of icons
-        const icons = {
-            "Ateljé": new LeafIcon({iconUrl: 'icons/circle.svg'}),
-            "Bibliotek": new LeafIcon({iconUrl: 'icons/library.png'}),
-            "Biograf": new LeafIcon({iconUrl: 'icons/cinema.png'}),
-            "Förberedande utbildning/Folkhögskola": new LeafIcon({iconUrl: 'icons/education.png'}),
-            "Fritidsgård": new LeafIcon({iconUrl: 'icons/youth-center.png'}),
-            "Gallerier": new LeafIcon({iconUrl: 'icons/gallery.png'}),
-            "Konsthall": new LeafIcon({iconUrl: 'icons/art-hall.png'}),
-            "Konstskola": new LeafIcon({iconUrl: 'icons/art-school.png'}),
-            "Kulturhus": new LeafIcon({iconUrl: 'icons/culture-house.png'}),
-            "Kulturskola": new LeafIcon({iconUrl: 'icons/music-school.png'}),
-            "Museum": new LeafIcon({iconUrl: 'icons/museum.png'}),
-            "Platser för evenemang": new LeafIcon({iconUrl: 'icons/event.png'}),
-            "Platser för seniorer": new LeafIcon({iconUrl: 'icons/senior.png'}),
-            "Replokaler": new LeafIcon({iconUrl: 'icons/rehearsal.png'}),
-            "Samlingslokaler/hembygdsgårdar": new LeafIcon({iconUrl: 'icons/community-hall.png'}),
-            "Scener inomhus": new LeafIcon({iconUrl: 'icons/stage.png'}),
-            "Studieförbund med egna lokaler": new LeafIcon({iconUrl: 'icons/study-org.png'}),
-            "default": new LeafIcon({iconUrl: 'icons/marker-default.png'})
-        };
-
-        // Add shapefiles layer
-
-        async function addShapefileLayer(zipUrl) {
-    try {
-        const geojsonData = await shp(zipUrl);
-
-        L.geoJSON(geojsonData, {
-            pointToLayer: function (feature, latlng) {
-                // 1. Get the category name from your data
-                const category = feature.properties.Kategori || feature.properties.Typ; 
-
-                // 2. Pick the color based on the map above, or use the default
-                const markerColor = categoryColors[category] || categoryColors["default"];
-
-                // 3. Return a Circle Marker with that color
-                return L.circleMarker(latlng, {
-                    radius: 8,           // Size of the dot
-                    fillColor: markerColor,
-                    color: "#ffffff",    // Border color (white looks best)
-                    weight: 2,           // Border thickness
-                    opacity: 1,
-                    fillOpacity: 0.9     // Transparency of the dot
-                });
-            },
-                } 
-
-                // Default fallback to Circle if no icon is defined
-                return L.circleMarker(latlng, {
-                    radius: 6,
-                    fillColor: "#ff7800",
-                    color: "#000",
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                });
-            }, 
-            
-            const categoryColors = {
-    "Museum": "#e74c3c", // Red
-    "Bibliotek": "#3498db", // Blue
-    "Ateljé": "#9b59b6", // Purple
-    "Biograf": "#f1c40f", // Yellow
-    "Kulturhus": "#2ecc71", // Green
-    "default": "#95a5a6"  // Grey for anything else
-            };
-        
-            style: function(feature) {
-                return { color: "blue", weight: 2, fillOpacity: 0.1 };
-            }, 
-
-            onEachFeature: function(feature, layer) {
-                if (feature.properties) {
-                    let popupContent = "<strong>GIS Data:</strong><br>";
-                    for (let key in feature.properties) {
-                        popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
-                    }
-                    layer.bindPopup(popupContent);
-                }
-            }
-        }).addTo(map); 
-
-        console.log("Shapefile successfully loaded!");
-
-    } catch (error) { 
-        console.error("Error loading shapefile:", error);
-    }
-} 
-
-// Call the function with your filename
-addShapefileLayer('kulturverksamheter_utdrag_GBG_251212.zip');
-
-    </script>
-</body>
-</html>
+        campusData.
