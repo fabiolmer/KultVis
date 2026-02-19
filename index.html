@@ -32,6 +32,33 @@
 
         #widget-text { padding-bottom: 10px; font-weight: bold; }
         #widget-img { width: 100%; height: auto; border-radius: 4px; }
+
+        #legend-widget {
+            position: absolute; bottom: 30px; right: 20px;
+            z-index: 1000; padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.9); border: 0.4px solid #333;
+            border-radius: 5px; font-family: sans-serif; font-size: 13px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        #legend-widget h4 {
+            margin: 0 0 10px 0; font-size: 13px; font-weight: bold;
+        }
+
+        .legend-item {
+            display: flex; align-items: center; margin-bottom: 7px;
+            cursor: pointer; user-select: none; transition: opacity 0.2s;
+        }
+
+        .legend-item:last-child { margin-bottom: 0; }
+
+        .legend-item.disabled { opacity: 0.35; text-decoration: line-through; }
+
+        .legend-dot {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid #fff; outline: 1px solid #aaa;
+            margin-right: 8px; flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -41,6 +68,16 @@
     <div id="activity-widget">
         <div id="widget-text">Activities</div>
         <img id="widget-img" src="activities_bar_graph.png" alt="activities bar graph">
+    </div>
+
+    <div id="legend-widget">
+        <h4>Cultural Sites</h4>
+        <div class="legend-item" data-category="Museum"><div class="legend-dot" style="background:#e74c3c;"></div> Museum</div>
+        <div class="legend-item" data-category="Bibliotek"><div class="legend-dot" style="background:#3498db;"></div> Bibliotek</div>
+        <div class="legend-item" data-category="Ateljé"><div class="legend-dot" style="background:#9b59b6;"></div> Ateljé</div>
+        <div class="legend-item" data-category="Biograf"><div class="legend-dot" style="background:#f1c40f;"></div> Biograf</div>
+        <div class="legend-item" data-category="Kulturhus"><div class="legend-dot" style="background:#2ecc71;"></div> Kulturhus</div>
+        <div class="legend-item" data-category="default"><div class="legend-dot" style="background:#95a5a6;"></div> Other</div>
     </div>
 
     <script>
@@ -159,25 +196,34 @@
             });
         });
 
-        // 6. Load Shapefile
+        // 6. Load Shapefile — store layers grouped by category for toggling
+        var categoryLayers = {}; // { "Museum": [layer, layer, ...], ... }
+        var hiddenCategories = new Set();
+
         async function loadCulturalData() {
             try {
                 const geojsonData = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
 
                 L.geoJSON(geojsonData, {
                     pointToLayer: function(feature, latlng) {
-                        // FIX: log properties once to help verify field names if colors appear wrong
                         const props = feature.properties;
                         const category = props.Kategori || props.Typ || "";
-                        const color = categoryColors[category] || categoryColors["default"];
+                        const colorKey = categoryColors[category] ? category : "default";
+                        const color = categoryColors[colorKey];
 
-                        return L.circleMarker(latlng, {
+                        const marker = L.circleMarker(latlng, {
                             radius: 8,
                             fillColor: color,
                             color: "#fff",
                             weight: 2,
                             fillOpacity: 0.9
                         });
+
+                        // Store marker under its category key
+                        if (!categoryLayers[colorKey]) categoryLayers[colorKey] = [];
+                        categoryLayers[colorKey].push(marker);
+
+                        return marker;
                     },
                     onEachFeature: function(feature, layer) {
                         layer.bindPopup(
@@ -193,6 +239,26 @@
         }
 
         loadCulturalData();
+
+        // 7. Legend toggle — click to show/hide a category
+        document.querySelectorAll('.legend-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                const cat = this.dataset.category;
+                const layers = categoryLayers[cat];
+
+                if (hiddenCategories.has(cat)) {
+                    // Turn ON
+                    hiddenCategories.delete(cat);
+                    this.classList.remove('disabled');
+                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0.9, opacity: 1 }); });
+                } else {
+                    // Turn OFF
+                    hiddenCategories.add(cat);
+                    this.classList.add('disabled');
+                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0, opacity: 0 }); });
+                }
+            });
+        });
     </script>
 </body>
 </html>
