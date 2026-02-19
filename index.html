@@ -45,7 +45,7 @@
 
     <script>
         console.log("Script starting...");
-        
+
         // 1. Initialize Map
         var map = L.map('map').setView([57.70979, 11.93344], 16);
 
@@ -55,17 +55,22 @@
 
         // 2. Define Colors
         const categoryColors = {
-            "Museum": "#e74c3c", "Bibliotek": "#3498db", "Ateljé": "#9b59b6", 
-            "Biograf": "#f1c40f", "Kulturhus": "#2ecc71", "default": "#95a5a6" 
+            "Museum": "#e74c3c",
+            "Bibliotek": "#3498db",
+            "Ateljé": "#9b59b6",
+            "Biograf": "#f1c40f",
+            "Kulturhus": "#2ecc71",
+            "default": "#95a5a6"
         };
 
-        // 3. Draw Campus Buildings
+        // 3. Define Campus Buildings
         var campusData = [
-            { name: "Studios building", points: [[57.70951, 11.93193], [57.71001, 11.93243], [57.70951, 11.93193]] },
-            { name: "Rehearsal building", points: [[57.70928, 11.93220], [57.70939, 11.93250], [57.70928, 11.93220]] 
-            { name: "Studios building", points: [[57.70951662524695, 11.931938382864644],
+            {
+                name: "Studios building",
+                points: [
+                    [57.70951662524695, 11.931938382864644],
                     [57.70970176918331, 11.932277900706879],
-                    [57.7094855863034, 11.932706919283135],
+                    [57.7094855863034,  11.932706919283135],
                     [57.709535974909755, 11.93279819983087],
                     [57.70938155799158, 11.933111596379405],
                     [57.709846432193814, 11.93392703594256],
@@ -73,64 +78,99 @@
                     [57.71010932795221, 11.93287650459473],
                     [57.71013559888016, 11.932823692101266],
                     [57.71001636019332, 11.932439974500426],
-            [57.709693475936064, 11.93186314412037],
-            [57.70959299269569, 11.931838064537516],
-            [57.70951662524695, 11.931938382864644],]
+                    [57.709693475936064, 11.93186314412037],
+                    [57.70959299269569, 11.931838064537516],
+                    [57.70951662524695, 11.931938382864644]
+                ]
             },
             {
-                name: "Rehersal building",
-                points: [[57.70928745782078, 11.932208794353187],
-            [57.70902758335501, 11.932518927214943],
-            [57.70921998416708, 11.932836563290579],
-            [57.7093910062529, 11.932502670249931],
-            [57.70928745782078,11.932208794353187],]
+                name: "Rehearsal building",
+                points: [
+                    [57.70928745782078, 11.932208794353187],
+                    [57.70902758335501, 11.932518927214943],
+                    [57.70921998416708, 11.932836563290579],
+                    [57.7093910062529,  11.932502670249931],
+                    [57.70928745782078, 11.932208794353187]
+                ]
             },
             {
                 name: "Empty building",
-                points: [[57.70891610280418,11.932665856538392],
-            [57.70869053782431,11.93293811440671],
-            [57.708743539557986,11.9330961624066],
-            [57.70896972050261, 11.932820443633346],]
+                points: [
+                    [57.70891610280418, 11.932665856538392],
+                    [57.70869053782431, 11.93293811440671],
+                    [57.708743539557986, 11.9330961624066],
+                    [57.70896972050261, 11.932820443633346],
+                    [57.70891610280418, 11.932665856538392]
+                ]
             },
             {
                 name: "Offices",
-                points: [[57.708124266181585, 11.933620724797635],
-        [57.70795570644813, 11.93382867907107],
-        [57.707956472630315, 11.934501303584142],
-        [57.70803845405169, 11.93464758865909],
-        [57.70815491332178, 11.93439087269374],
-        [57.708092852836245, 11.934268968464693],
-        [57.70809438519521, 11.933930504956834],
-        [57.708187858967875, 11.933797127388374],
-        [57.708124266181585, 11.933620724797635],]
+                points: [
+                    [57.708124266181585, 11.933620724797635],
+                    [57.70795570644813, 11.93382867907107],
+                    [57.707956472630315, 11.934501303584142],
+                    [57.70803845405169, 11.93464758865909],
+                    [57.70815491332178, 11.93439087269374],
+                    [57.708092852836245, 11.934268968464693],
+                    [57.70809438519521, 11.933930504956834],
+                    [57.708187858967875, 11.933797127388374],
+                    [57.708124266181585, 11.933620724797635]
+                ]
             },
             {
                 name: "Deposit",
-                points: [[57.708321871241566, 11.933638322418574],
-        [57.70825181264752, 11.933778903815977],
-        [57.70823724044297, 11.933847096286001],
-        [57.708335322476074, 11.934025445819628],
-        [57.70843228331083, 11.933828212216696],
-        [57.708321871241566, 11.933638322418574],]
+                points: [
+                    [57.708321871241566, 11.933638322418574],
+                    [57.70825181264752, 11.933778903815977],
+                    [57.70823724044297, 11.933847096286001],
+                    [57.708335322476074, 11.934025445819628],
+                    [57.70843228331083, 11.933828212216696],
+                    [57.708321871241566, 11.933638322418574]
+                ]
             }
         ];
 
+        // 4. Draw Campus Buildings — FIX: declare buildinglist, unified forEach, stop propagation
+        var buildingList = [];
 
         campusData.forEach(function(building) {
-            var poly = L.polygon(building.points, { color: 'red', weight: 2, fillOpacity: 0.2 }).addTo(map);
+            var poly = L.polygon(building.points, {
+                color: 'red',
+                weight: 2,
+                fillOpacity: 0.2
+            }).addTo(map);
+
+            // FIX: stop propagation so map click doesn't immediately reset the fill
+            poly.on('click', function(e) {
+                L.DomEvent.stopPropagation(e);
+                this.setStyle({ fillOpacity: 0.5 });
+            });
+
             poly.bindPopup(building.name);
+
+            // FIX: push into the declared array
+            buildingList.push(poly);
         });
 
-        // 4. Load Shapefile
+        // 5. When the MAP background is clicked: reset all buildings
+        map.on('click', function() {
+            buildingList.forEach(function(b) {
+                b.setStyle({ fillOpacity: 0.2 });
+            });
+        });
+
+        // 6. Load Shapefile
         async function loadCulturalData() {
             try {
-                // Ensure this file is in the SAME folder as your index.html
                 const geojsonData = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
-                
+
                 L.geoJSON(geojsonData, {
-                    pointToLayer: function (feature, latlng) {
-                        const category = feature.properties.Kategori || feature.properties.Typ; 
+                    pointToLayer: function(feature, latlng) {
+                        // FIX: log properties once to help verify field names if colors appear wrong
+                        const props = feature.properties;
+                        const category = props.Kategori || props.Typ || "";
                         const color = categoryColors[category] || categoryColors["default"];
+
                         return L.circleMarker(latlng, {
                             radius: 8,
                             fillColor: color,
@@ -140,10 +180,13 @@
                         });
                     },
                     onEachFeature: function(feature, layer) {
-                        layer.bindPopup("<strong>" + (feature.properties.Namn || "Cultural Site") + "</strong>");
+                        layer.bindPopup(
+                            "<strong>" + (feature.properties.Namn || "Cultural Site") + "</strong>"
+                        );
                     }
                 }).addTo(map);
-                console.log("Shapefile loaded!");
+
+                console.log("Shapefile loaded successfully!");
             } catch (err) {
                 console.error("Shapefile Error:", err);
             }
