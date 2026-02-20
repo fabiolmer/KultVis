@@ -92,6 +92,14 @@
             margin: 10px 0;
         }
 
+        .legend-group-header {
+            display: flex; align-items: center; gap: 6px;
+            cursor: pointer; user-select: none; margin-bottom: 8px;
+        }
+
+        .legend-group-header.disabled h4 { opacity: 0.4; text-decoration: line-through; }
+        .legend-group-header.disabled + #cultural-sites-group { opacity: 0.4; }
+
         .legend-category-title {
             font-weight: bold; font-size: 13px; margin-bottom: 6px;
         }
@@ -122,20 +130,30 @@
     </div>
 
     <div id="legend-widget">
-        <h4>Cultural Sites</h4>
-        <div class="legend-item" data-category="Museum"><div class="legend-dot" style="background:#e74c3c;"></div> Museum</div>
-        <div class="legend-item" data-category="Bibliotek"><div class="legend-dot" style="background:#3498db;"></div> Bibliotek</div>
-        <div class="legend-item" data-category="Ateljé"><div class="legend-dot" style="background:#9b59b6;"></div> Ateljé</div>
-        <div class="legend-item" data-category="Biograf"><div class="legend-dot" style="background:#f1c40f;"></div> Biograf</div>
-        <div class="legend-item" data-category="Kulturhus"><div class="legend-dot" style="background:#2ecc71;"></div> Kulturhus</div>
-        <div class="legend-item" data-category="default"><div class="legend-dot" style="background:#95a5a6;"></div> Other</div>
+        <div id="cultural-sites-header" class="legend-group-header">
+            <input type="checkbox" id="cultural-sites-checkbox" checked style="cursor:pointer; margin:0; accent-color:#c8d8d8; width:14px; height:14px;">
+            <h4 style="margin:0; display:inline; cursor:pointer;">Cultural Sites</h4>
+        </div>
+        <div id="cultural-sites-group">
+            <div class="legend-item" data-category="Museum"><div class="legend-dot" style="background:#e74c3c;"></div> Museum</div>
+            <div class="legend-item" data-category="Bibliotek"><div class="legend-dot" style="background:#3498db;"></div> Bibliotek</div>
+            <div class="legend-item" data-category="Ateljé"><div class="legend-dot" style="background:#9b59b6;"></div> Ateljé</div>
+            <div class="legend-item" data-category="Biograf"><div class="legend-dot" style="background:#f1c40f;"></div> Biograf</div>
+            <div class="legend-item" data-category="Kulturhus"><div class="legend-dot" style="background:#2ecc71;"></div> Kulturhus</div>
+            <div class="legend-item" data-category="default"><div class="legend-dot" style="background:#95a5a6;"></div> Other</div>
+        </div>
 
         <hr class="legend-divider">
 
-        <div class="legend-category-title">Relationscape Lindholmen</div>
-        <div style="font-size:11px; color:#555; margin-bottom:6px;">Cultural value 1 and 2</div>
-        <div class="legend-item">
-            <div class="legend-dot" style="background:#ff6600;"></div> Karlatornet
+        <div id="relationscape-header" class="legend-group-header">
+            <input type="checkbox" id="relationscape-checkbox" checked style="cursor:pointer; margin:0; accent-color:#c8d8d8; width:14px; height:14px;">
+            <h4 style="margin:0; display:inline; cursor:pointer;">Relationscape Lindholmen</h4>
+        </div>
+        <div id="relationscape-group">
+            <div style="font-size:11px; color:#555; margin-bottom:6px;">Cultural value 1 and 2</div>
+            <div class="legend-item" id="karlatornet-item">
+                <div class="legend-dot" style="background:#ff6600;"></div> Karlatornet
+            </div>
         </div>
     </div>
 
@@ -304,14 +322,51 @@
             { name: "Karlatornet", lat: 57.70993302217523, lng: 11.939144656326647 }
         ];
 
+        var customMarkers = [];
         customPoints.forEach(function(point) {
-            L.circleMarker([point.lat, point.lng], {
+            var marker = L.circleMarker([point.lat, point.lng], {
                 radius: 9,
                 fillColor: "#ff6600",
                 color: "#fff",
                 weight: 2,
                 fillOpacity: 1
             }).bindPopup("<strong>" + point.name + "</strong>").addTo(map);
+            customMarkers.push(marker);
+        });
+
+        // 11. Relationscape Lindholmen group toggle
+        function toggleRelationscape(visible) {
+            document.getElementById('relationscape-header').classList.toggle('disabled', !visible);
+            customMarkers.forEach(function(m) {
+                m.setStyle({ fillOpacity: visible ? 1 : 0, opacity: visible ? 1 : 0 });
+            });
+            document.querySelectorAll('#relationscape-group .legend-item').forEach(function(item) {
+                item.classList.toggle('disabled', !visible);
+            });
+        }
+
+        document.getElementById('relationscape-header').addEventListener('click', function(e) {
+            if (e.target.id === 'relationscape-checkbox') return;
+            var cb = document.getElementById('relationscape-checkbox');
+            cb.checked = !cb.checked;
+            toggleRelationscape(cb.checked);
+        });
+
+        document.getElementById('relationscape-checkbox').addEventListener('change', function() {
+            toggleRelationscape(this.checked);
+        });
+
+        // Karlatornet individual toggle
+        var karlatornetVisible = true;
+        document.getElementById('karlatornet-item').addEventListener('click', function() {
+            karlatornetVisible = !karlatornetVisible;
+            this.classList.toggle('disabled', !karlatornetVisible);
+            customMarkers.forEach(function(m) {
+                m.setStyle({
+                    fillOpacity: karlatornetVisible ? 1 : 0,
+                    opacity: karlatornetVisible ? 1 : 0
+                });
+            });
         });
         document.getElementById('widget-header').addEventListener('click', function() {
             const widget = document.getElementById('activity-widget');
@@ -321,6 +376,38 @@
             widget.classList.toggle('collapsed', collapsed);
             toggle.textContent = collapsed ? '▼' : '▲';
         });
+
+        // 10. Cultural Sites group toggle
+        var culturalSitesVisible = true;
+        document.getElementById('cultural-sites-header').addEventListener('click', function(e) {
+            // Avoid double-firing when clicking directly on the checkbox
+            if (e.target.id === 'cultural-sites-checkbox') return;
+            document.getElementById('cultural-sites-checkbox').checked = !document.getElementById('cultural-sites-checkbox').checked;
+            toggleCulturalSites(document.getElementById('cultural-sites-checkbox').checked);
+        });
+
+        document.getElementById('cultural-sites-checkbox').addEventListener('change', function() {
+            toggleCulturalSites(this.checked);
+        });
+
+        function toggleCulturalSites(visible) {
+            culturalSitesVisible = visible;
+            document.getElementById('cultural-sites-header').classList.toggle('disabled', !visible);
+
+            Object.values(categoryLayers).forEach(function(layers) {
+                layers.forEach(function(l) {
+                    l.setStyle({
+                        fillOpacity: visible ? 0.9 : 0,
+                        opacity: visible ? 1 : 0
+                    });
+                });
+            });
+
+            document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
+                if (visible) item.classList.remove('disabled');
+            });
+            hiddenCategories.clear();
+        }
 
         // 7. Legend toggle — click to show/hide a category
         document.querySelectorAll('.legend-item').forEach(function(item) {
