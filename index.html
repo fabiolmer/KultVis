@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Leaflet Map - Gothenburg Cultural Activities</title>
     
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
@@ -197,16 +200,6 @@
         }).addTo(map);
 
         // ── deck.gl 3D Buildings via deck.gl-leaflet ──────────────────────────
-        var buildingsLayer = new deck.GeoJsonLayer({
-            id: '3d-buildings',
-            data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/buildings.json',
-            extruded: true,
-            getElevation: function(f) { return f.properties.height || 10; },
-            getFillColor: [210, 215, 225, 200],
-            getLineColor: [180, 185, 195],
-            lineWidthMinPixels: 1
-        });
-
         // Fetch buildings from Overpass and render with deck.gl-leaflet
         async function load3DBuildings() {
             try {
