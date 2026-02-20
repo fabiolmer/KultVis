@@ -149,11 +149,38 @@
             <input type="checkbox" id="relationscape-checkbox" checked style="cursor:pointer; margin:0; accent-color:#c8d8d8; width:14px; height:14px;">
             <h4 style="margin:0; display:inline; cursor:pointer;">Relationscape Lindholmen</h4>
         </div>
-        <div id="relationscape-group">
+        <div id="relationscape-group" style="max-height:300px; overflow-y:auto;">
             <div style="font-size:11px; color:#555; margin-bottom:6px;">Cultural value 1 and 2</div>
-            <div class="legend-item" id="karlatornet-item">
-                <div class="legend-dot" style="background:#ff6600;"></div> Karlatornet
-            </div>
+            <div class="legend-item rel-item" data-index="0"><div class="legend-dot" style="background:#ff6600;"></div> Karlatornet</div>
+            <div class="legend-item rel-item" data-index="1"><div class="legend-dot" style="background:#ff6600;"></div> Backa teater</div>
+            <div class="legend-item rel-item" data-index="2"><div class="legend-dot" style="background:#ff6600;"></div> Lindholmens manor</div>
+            <div class="legend-item rel-item" data-index="3"><div class="legend-dot" style="background:#ff6600;"></div> Adolfs Hill</div>
+            <div class="legend-item rel-item" data-index="4"><div class="legend-dot" style="background:#ff6600;"></div> Bostadsbebyggelsen</div>
+            <div class="legend-item rel-item" data-index="5"><div class="legend-dot" style="background:#ff6600;"></div> Kuggen (Chalmers)</div>
+            <div class="legend-item rel-item" data-index="6"><div class="legend-dot" style="background:#ff6600;"></div> The dome (temporary)</div>
+            <div class="legend-item rel-item" data-index="7"><div class="legend-dot" style="background:#ff6600;"></div> Skatberget</div>
+            <div class="legend-item rel-item" data-index="8"><div class="legend-dot" style="background:#ff6600;"></div> The dry dock facing the river</div>
+            <div class="legend-item rel-item" data-index="9"><div class="legend-dot" style="background:#ff6600;"></div> Ancient traces and monuments</div>
+            <div class="legend-item rel-item" data-index="10"><div class="legend-dot" style="background:#ff6600;"></div> The railway 'the harbourlink'</div>
+            <div class="legend-item rel-item" data-index="11"><div class="legend-dot" style="background:#ff6600;"></div> Lundbyleden – traffic barrier</div>
+            <div class="legend-item rel-item" data-index="12"><div class="legend-dot" style="background:#ff6600;"></div> The Propellerarea (Kvarteret Propellern)</div>
+            <div class="legend-item rel-item" data-index="13"><div class="legend-dot" style="background:#ff6600;"></div> 28. Lundby Mekaniska verkstad</div>
+            <div class="legend-item rel-item" data-index="14"><div class="legend-dot" style="background:#ff6600;"></div> 29. Göteborgs galvaniseringsfabrik (removed)</div>
+            <div class="legend-item rel-item" data-index="15"><div class="legend-dot" style="background:#ff6600;"></div> 30. Lindholmen 735:491</div>
+            <div class="legend-item rel-item" data-index="16"><div class="legend-dot" style="background:#ff6600;"></div> A</div>
+            <div class="legend-item rel-item" data-index="17"><div class="legend-dot" style="background:#ff6600;"></div> B</div>
+            <div class="legend-item rel-item" data-index="18"><div class="legend-dot" style="background:#ff6600;"></div> C</div>
+            <div class="legend-item rel-item" data-index="19"><div class="legend-dot" style="background:#ff6600;"></div> D</div>
+            <div class="legend-item rel-item" data-index="20"><div class="legend-dot" style="background:#ff6600;"></div> E</div>
+            <div class="legend-item rel-item" data-index="21"><div class="legend-dot" style="background:#ff6600;"></div> F</div>
+            <div class="legend-item rel-item" data-index="22"><div class="legend-dot" style="background:#ff6600;"></div> G</div>
+            <div class="legend-item rel-item" data-index="23"><div class="legend-dot" style="background:#ff6600;"></div> H</div>
+            <div class="legend-item rel-item" data-index="24"><div class="legend-dot" style="background:#ff6600;"></div> I</div>
+            <div class="legend-item rel-item" data-index="25"><div class="legend-dot" style="background:#ff6600;"></div> Aftonstjärnan</div>
+            <div class="legend-item rel-item" data-index="26"><div class="legend-dot" style="background:#ff6600;"></div> 1</div>
+            <div class="legend-item rel-item" data-index="27"><div class="legend-dot" style="background:#ff6600;"></div> 2</div>
+            <div class="legend-item rel-item" data-index="28"><div class="legend-dot" style="background:#ff6600;"></div> 3</div>
+            <div class="legend-item rel-item" data-index="29"><div class="legend-dot" style="background:#ff6600;"></div> 4</div>
         </div>
     </div>
 
@@ -319,7 +346,36 @@
 
         // 9. Custom Points Layer
         var customPoints = [
-            { name: "Karlatornet", lat: 57.70993302217523, lng: 11.939144656326647 }
+            { name: "Karlatornet", lat: 57.70993302217523, lng: 11.939144656326647 },
+            { name: "Backa teater", lat: 57.7059134823545, lng: 11.935946002968043 },
+            { name: "Lindholmens manor", lat: 57.70822191757826, lng: 11.932127495719401 },
+            { name: "Adolfs Hill", lat: 57.70874624233934, lng: 11.931688165065507 },
+            { name: "Bostadsbebyggelsen", lat: 57.70403715038053, lng: 11.92922023307963 },
+            { name: "Kuggen (Chalmers)", lat: 57.706705768556226, lng: 11.938823849178842 },
+            { name: "The dome (temporary)", lat: 57.7069678751202, lng: 11.938024547056298 },
+            { name: "Skatberget", lat: 57.703394567613806, lng: 11.932637758777398 },
+            { name: "The dry dock facing the river", lat: 57.70390322289196, lng: 11.931243230625997 },
+            { name: "Ancient traces and monuments", lat: 57.709106700082025, lng: 11.931282345782982 },
+            { name: "The railway 'the harbourlink'", lat: 57.711460035312754, lng: 11.933624363134244 },
+            { name: "Lundbyleden – traffic barrier", lat: 57.71194583240717, lng: 11.933995956694147 },
+            { name: "The Propellerarea (Kvarteret Propellern)", lat: 57.709876323746826, lng: 11.933281689779417 },
+            { name: "28. Lundby Mekaniska verkstad – KV-konstskola & Balettakademien Göteborg", lat: 57.70918449081427, lng: 11.936593557667631 },
+            { name: "29. Göteborgs galvaniseringsfabrik (removed)", lat: 57.7103486083178, lng: 11.938426305917357 },
+            { name: "30. Lindholmen 735:491", lat: 57.70800, lng: 11.93419 },
+            { name: "A", lat: 57.70882724595256, lng: 11.931242712062327 },
+            { name: "B", lat: 57.706838332579316, lng: 11.927863128855241 },
+            { name: "C", lat: 57.70655370905854, lng: 11.931877856803176 },
+            { name: "D", lat: 57.704201539462396, lng: 11.929593145840556 },
+            { name: "E", lat: 57.70418782373976, lng: 11.933212744107175 },
+            { name: "F", lat: 57.70705429686395, lng: 11.93738426693218 },
+            { name: "G", lat: 57.707081726132756, lng: 11.938334090590796 },
+            { name: "H", lat: 57.70867258817404, lng: 11.940605966098568 },
+            { name: "I", lat: 57.70904286500106, lng: 11.93725591238372 },
+            { name: "Aftonstjärnan", lat: 57.70701587605392, lng: 11.932744845029957 },
+            { name: "1", lat: 57.703525358475936, lng: 11.934794455961411 },
+            { name: "2", lat: 57.70589850286558, lng: 11.93873193861855 },
+            { name: "3", lat: 57.7063683140276, lng: 11.946702964372975 },
+            { name: "4", lat: 57.7060645183475, lng: 11.9493100717401 }
         ];
 
         var customMarkers = [];
@@ -340,7 +396,7 @@
             customMarkers.forEach(function(m) {
                 m.setStyle({ fillOpacity: visible ? 1 : 0, opacity: visible ? 1 : 0 });
             });
-            document.querySelectorAll('#relationscape-group .legend-item').forEach(function(item) {
+            document.querySelectorAll('#relationscape-group .rel-item').forEach(function(item) {
                 item.classList.toggle('disabled', !visible);
             });
         }
@@ -356,15 +412,15 @@
             toggleRelationscape(this.checked);
         });
 
-        // Karlatornet individual toggle
-        var karlatornetVisible = true;
-        document.getElementById('karlatornet-item').addEventListener('click', function() {
-            karlatornetVisible = !karlatornetVisible;
-            this.classList.toggle('disabled', !karlatornetVisible);
-            customMarkers.forEach(function(m) {
-                m.setStyle({
-                    fillOpacity: karlatornetVisible ? 1 : 0,
-                    opacity: karlatornetVisible ? 1 : 0
+        // Individual toggle for each Relationscape point
+        document.querySelectorAll('.rel-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.index);
+                const marker = customMarkers[idx];
+                const isDisabled = this.classList.toggle('disabled');
+                marker.setStyle({
+                    fillOpacity: isDisabled ? 0 : 1,
+                    opacity: isDisabled ? 0 : 1
                 });
             });
         });
