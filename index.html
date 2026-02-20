@@ -286,7 +286,7 @@
                     },
                     onEachFeature: function(feature, layer) {
                         layer.bindPopup(
-                            "<strong>" + (feature.properties.Namn || "Cultural Site") + "</strong>"
+                            "<strong>" + (feature.properties.Kategori || "Cultural Site") + "</strong>"
                         );
                     }
                 }).addTo(map);
