@@ -7,7 +7,7 @@
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/osmbuildings@3.2.6/dist/OSMBuildings-Leaflet.js"></script>
+    <script src="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.js"></script>
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; }
@@ -195,11 +195,15 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // OSM 3D Buildings
+        // OSM 3D Buildings — using OSMBuildings v4 with Leaflet
         if (typeof OSMBuildings !== 'undefined') {
             try {
-                var osmb = new OSMBuildings(map);
-                osmb.load('https://data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
+                var osmb = new OSMBuildings({
+                    baseURL: 'https://cdn.osmbuildings.org/4.1.1'
+                });
+                osmb.addTo(map);
+                osmb.addMapTiles('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+                osmb.addGeoJSONTiles('https://data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
                 console.log("OSMBuildings initialised.");
             } catch(e) {
                 console.warn('OSMBuildings failed to initialise:', e);
