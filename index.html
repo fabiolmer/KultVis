@@ -7,6 +7,7 @@
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/osmbuildings@3.2.6/dist/OSMBuildings-Leaflet.js"></script>
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; }
@@ -194,6 +195,19 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
+        // OSM 3D Buildings
+        if (typeof OSMBuildings !== 'undefined') {
+            try {
+                var osmb = new OSMBuildings(map);
+                osmb.load('https://data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
+                console.log("OSMBuildings initialised.");
+            } catch(e) {
+                console.warn('OSMBuildings failed to initialise:', e);
+            }
+        } else {
+            console.warn('OSMBuildings library not loaded.');
+        }
+
         // 2. Define Colors
         const categoryColors = {
             "Museum": "#e74c3c",
@@ -300,51 +314,11 @@
             });
         });
 
-        // 6. Load Shapefile — store layers grouped by category for toggling
-        var categoryLayers = {}; // { "Museum": [layer, layer, ...], ... }
+        // 6. Category colours
+        var categoryLayers   = {};
         var hiddenCategories = new Set();
 
-        async function loadCulturalData() {
-            try {
-                const geojsonData = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
-
-                L.geoJSON(geojsonData, {
-                    pointToLayer: function(feature, latlng) {
-                        const props = feature.properties;
-                        const category = props.Kategori || props.Typ || "";
-                        const colorKey = categoryColors[category] ? category : "default";
-                        const color = categoryColors[colorKey];
-
-                        const marker = L.circleMarker(latlng, {
-                            radius: 8,
-                            fillColor: color,
-                            color: "#fff",
-                            weight: 2,
-                            fillOpacity: 0.9
-                        });
-
-                        // Store marker under its category key
-                        if (!categoryLayers[colorKey]) categoryLayers[colorKey] = [];
-                        categoryLayers[colorKey].push(marker);
-
-                        return marker;
-                    },
-                    onEachFeature: function(feature, layer) {
-                        layer.bindPopup(
-                            "<strong>" + (feature.properties.Kategori || "Cultural Site") + "</strong>"
-                        );
-                    }
-                }).addTo(map);
-
-                console.log("Shapefile loaded successfully!");
-            } catch (err) {
-                console.error("Shapefile Error:", err);
-            }
-        }
-
-        loadCulturalData();
-
-        // 9. Custom Points Layer
+        // 7. Custom Points Layer
         var customPoints = [
             { name: "Karlatornet", lat: 57.70993302217523, lng: 11.939144656326647 },
             { name: "Backa teater", lat: 57.7059134823545, lng: 11.935946002968043 },
@@ -381,20 +355,115 @@
         var customMarkers = [];
         customPoints.forEach(function(point) {
             var marker = L.circleMarker([point.lat, point.lng], {
-                radius: 9,
-                fillColor: "#ff6600",
-                color: "#fff",
-                weight: 2,
-                fillOpacity: 1
+                radius: 9, fillColor: "#ff6600",
+                color: "#fff", weight: 2, fillOpacity: 1
             }).bindPopup("<strong>" + point.name + "</strong>").addTo(map);
             customMarkers.push(marker);
         });
 
-        // 11. Relationscape Lindholmen group toggle
+        // 8. Load Shapefile
+        async function loadCulturalData() {
+            try {
+                var geojsonData = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
+                console.log("Shapefile data received:", geojsonData);
+
+                // shp() can return a single FeatureCollection or an array — handle both
+                var collections = Array.isArray(geojsonData) ? geojsonData : [geojsonData];
+
+                collections.forEach(function(collection) {
+                    L.geoJSON(collection, {
+                        pointToLayer: function(feature, latlng) {
+                            var props    = feature.properties;
+                            var category = props.Kategori || props.Typ || "";
+                            var colorKey = categoryColors[category] ? category : "default";
+                            var color    = categoryColors[colorKey];
+                            var marker   = L.circleMarker(latlng, {
+                                radius: 8, fillColor: color,
+                                color: "#fff", weight: 2, fillOpacity: 0.9
+                            });
+                            if (!categoryLayers[colorKey]) categoryLayers[colorKey] = [];
+                            categoryLayers[colorKey].push(marker);
+                            return marker;
+                        },
+                        onEachFeature: function(feature, layer) {
+                            layer.bindPopup(
+                                "<strong>" + (feature.properties.Kategori || "Cultural Site") + "</strong>"
+                            );
+                        }
+                    }).addTo(map);
+                });
+
+                console.log("Shapefile loaded successfully! Categories found:", Object.keys(categoryLayers));
+            } catch (err) {
+                console.error("Shapefile Error:", err);
+            }
+        }
+        loadCulturalData();
+
+        // 9. Activity widget collapse (starts collapsed)
+        document.getElementById('widget-header').addEventListener('click', function() {
+            var body      = document.getElementById('widget-body');
+            var widget    = document.getElementById('activity-widget');
+            var toggle    = document.getElementById('widget-toggle');
+            var nowHidden = body.classList.toggle('hidden');
+            widget.classList.toggle('collapsed', nowHidden);
+            toggle.textContent = nowHidden ? '▼' : '▲';
+        });
+
+        // 10. Cultural Sites group toggle
+        function toggleCulturalSites(visible) {
+            document.getElementById('cultural-sites-header').classList.toggle('disabled', !visible);
+            Object.values(categoryLayers).forEach(function(layers) {
+                layers.forEach(function(l) {
+                    l.setStyle({ fillOpacity: visible ? 0.9 : 0, opacity: visible ? 1 : 0 });
+                });
+            });
+            if (visible) {
+                document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
+                    item.classList.remove('disabled');
+                });
+                hiddenCategories.clear();
+            }
+        }
+
+        document.getElementById('cultural-sites-header').addEventListener('click', function(e) {
+            if (e.target.id === 'cultural-sites-checkbox') return;
+            var cb = document.getElementById('cultural-sites-checkbox');
+            cb.checked = !cb.checked;
+            toggleCulturalSites(cb.checked);
+        });
+
+        document.getElementById('cultural-sites-checkbox').addEventListener('change', function() {
+            toggleCulturalSites(this.checked);
+        });
+
+        // Individual Cultural Sites category toggle
+        document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                var cat    = this.dataset.category;
+                var layers = categoryLayers[cat];
+                if (hiddenCategories.has(cat)) {
+                    hiddenCategories.delete(cat);
+                    this.classList.remove('disabled');
+                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0.9, opacity: 1 }); });
+                } else {
+                    hiddenCategories.add(cat);
+                    this.classList.add('disabled');
+                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0, opacity: 0 }); });
+                }
+            });
+        });
+
+        // 11. Relationscape group toggle
         function toggleRelationscape(visible) {
             document.getElementById('relationscape-header').classList.toggle('disabled', !visible);
-            customMarkers.forEach(function(m) {
-                m.setStyle({ fillOpacity: visible ? 1 : 0, opacity: visible ? 1 : 0 });
+            customMarkers.forEach(function(m, idx) {
+                var item = document.querySelector('.rel-item[data-index="' + idx + '"]');
+                var indivHidden = item && item.classList.contains('disabled');
+                m.setStyle({
+                    fillOpacity: (!visible || indivHidden) ? 0 : 1,
+                    opacity:     (!visible || indivHidden) ? 0 : 1
+                });
             });
             document.querySelectorAll('#relationscape-group .rel-item').forEach(function(item) {
                 item.classList.toggle('disabled', !visible);
@@ -412,78 +481,19 @@
             toggleRelationscape(this.checked);
         });
 
-        // Individual toggle for each Relationscape point
+        // Individual Relationscape point toggle
         document.querySelectorAll('.rel-item').forEach(function(item) {
             item.addEventListener('click', function() {
-                const idx = parseInt(this.dataset.index);
-                const marker = customMarkers[idx];
-                const isDisabled = this.classList.toggle('disabled');
+                var idx          = parseInt(this.dataset.index);
+                var marker       = customMarkers[idx];
+                var isNowDisabled = this.classList.toggle('disabled');
                 marker.setStyle({
-                    fillOpacity: isDisabled ? 0 : 1,
-                    opacity: isDisabled ? 0 : 1
+                    fillOpacity: isNowDisabled ? 0 : 1,
+                    opacity:     isNowDisabled ? 0 : 1
                 });
             });
         });
-        document.getElementById('widget-header').addEventListener('click', function() {
-            const widget = document.getElementById('activity-widget');
-            const body = document.getElementById('widget-body');
-            const toggle = document.getElementById('widget-toggle');
-            const collapsed = body.classList.toggle('hidden');
-            widget.classList.toggle('collapsed', collapsed);
-            toggle.textContent = collapsed ? '▼' : '▲';
-        });
 
-        // 10. Cultural Sites group toggle
-        var culturalSitesVisible = true;
-        document.getElementById('cultural-sites-header').addEventListener('click', function(e) {
-            // Avoid double-firing when clicking directly on the checkbox
-            if (e.target.id === 'cultural-sites-checkbox') return;
-            document.getElementById('cultural-sites-checkbox').checked = !document.getElementById('cultural-sites-checkbox').checked;
-            toggleCulturalSites(document.getElementById('cultural-sites-checkbox').checked);
-        });
-
-        document.getElementById('cultural-sites-checkbox').addEventListener('change', function() {
-            toggleCulturalSites(this.checked);
-        });
-
-        function toggleCulturalSites(visible) {
-            culturalSitesVisible = visible;
-            document.getElementById('cultural-sites-header').classList.toggle('disabled', !visible);
-
-            Object.values(categoryLayers).forEach(function(layers) {
-                layers.forEach(function(l) {
-                    l.setStyle({
-                        fillOpacity: visible ? 0.9 : 0,
-                        opacity: visible ? 1 : 0
-                    });
-                });
-            });
-
-            document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
-                if (visible) item.classList.remove('disabled');
-            });
-            hiddenCategories.clear();
-        }
-
-        // 7. Legend toggle — click to show/hide a category
-        document.querySelectorAll('.legend-item').forEach(function(item) {
-            item.addEventListener('click', function() {
-                const cat = this.dataset.category;
-                const layers = categoryLayers[cat];
-
-                if (hiddenCategories.has(cat)) {
-                    // Turn ON
-                    hiddenCategories.delete(cat);
-                    this.classList.remove('disabled');
-                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0.9, opacity: 1 }); });
-                } else {
-                    // Turn OFF
-                    hiddenCategories.add(cat);
-                    this.classList.add('disabled');
-                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0, opacity: 0 }); });
-                }
-            });
-        });
     </script>
 </body>
 </html>
