@@ -24,14 +24,41 @@
         #activity-widget {
             position: absolute; top: 80px; right: 20px;
             z-index: 1000; width: 400px;
-            display: flex; flex-direction: column; padding: 15px;
+            display: flex; flex-direction: column; padding: 12px 20px;
             background: rgba(255, 255, 255, 0.9); border: 0.4px solid #333;
             border-radius: 5px; font-family: sans-serif;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: width 0.3s ease;
         }
 
-        #widget-text { padding-bottom: 10px; font-weight: bold; }
+        #activity-widget.collapsed { width: auto; }
+
+        #widget-header {
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; user-select: none; gap: 12px;
+        }
+
+        #widget-text { font-weight: bold; white-space: nowrap; }
+
+        #widget-toggle { font-size: 11px; color: #666; flex-shrink: 0; }
+
+        #widget-body { margin-top: 10px; }
+        #widget-body.hidden { display: none; }
+
         #widget-img { width: 100%; height: auto; border-radius: 4px; }
+
+        #bar-legend {
+            display: flex; flex-wrap: wrap; gap: 8px 16px;
+            margin-top: 8px; font-size: 11px; font-family: sans-serif;
+        }
+
+        .bar-legend-item {
+            display: flex; align-items: center; gap: 5px; white-space: nowrap;
+        }
+
+        .bar-legend-dot {
+            width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
+        }
 
         #legend-widget {
             position: absolute; bottom: 30px; right: 20px;
@@ -66,8 +93,19 @@
     <div id="map"></div>
     <div id="heading-widget">Gothenburg Film Studios</div>
     <div id="activity-widget">
-        <div id="widget-text">Activities</div>
-        <img id="widget-img" src="activities_bar_graph.png" alt="activities bar graph">
+        <div id="widget-header">
+            <div id="widget-text">Activities</div>
+            <div id="widget-toggle">▲</div>
+        </div>
+        <div id="widget-body">
+            <img id="widget-img" src="activities_bar_graph.png" alt="activities bar graph">
+            <div id="bar-legend">
+                <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#7b2d8b;"></div> Production platform (48%)</div>
+                <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#d48fc8;"></div> Public activities (40%)</div>
+                <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#90d67a;"></div> Social and non-profit activities (8%)</div>
+                <div class="bar-legend-item"><div class="bar-legend-dot" style="background:#2d6e3a;"></div> Education (4%)</div>
+            </div>
+        </div>
     </div>
 
     <div id="legend-widget">
@@ -227,7 +265,7 @@
                     },
                     onEachFeature: function(feature, layer) {
                         layer.bindPopup(
-                            "<strong>" + (feature.properties.Kategori || "Cultural Site") + "</strong>"
+                            "<strong>" + (feature.properties.Namn || "Cultural Site") + "</strong>"
                         );
                     }
                 }).addTo(map);
@@ -239,6 +277,16 @@
         }
 
         loadCulturalData();
+
+        // 8. Activity widget collapse toggle
+        document.getElementById('widget-header').addEventListener('click', function() {
+            const widget = document.getElementById('activity-widget');
+            const body = document.getElementById('widget-body');
+            const toggle = document.getElementById('widget-toggle');
+            const collapsed = body.classList.toggle('hidden');
+            widget.classList.toggle('collapsed', collapsed);
+            toggle.textContent = collapsed ? '▼' : '▲';
+        });
 
         // 7. Legend toggle — click to show/hide a category
         document.querySelectorAll('.legend-item').forEach(function(item) {
