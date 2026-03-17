@@ -7,18 +7,14 @@
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <script src="https://unpkg.com/leaflet.migrationLayer/dist/leaflet.migrationLayer.js"></script>
-   
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; }
         #map { height: 100vh; width: 100vw; background: #ddd; }
 
-        /* Widgets */
         #heading-widget {
             position: absolute; top: 20px; right: 20px;
-            padding: 12px 20px; background: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px; background: rgba(255,255,255,0.9);
             border: 0.4px solid #333; border-radius: 5px;
             z-index: 1000; font-family: sans-serif;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
@@ -28,87 +24,55 @@
             position: absolute; top: 80px; right: 20px;
             z-index: 1000; width: 400px;
             display: flex; flex-direction: column; padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.9); border: 0.4px solid #333;
+            background: rgba(255,255,255,0.9); border: 0.4px solid #333;
             border-radius: 5px; font-family: sans-serif;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: width 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: width 0.3s ease;
         }
-
         #activity-widget.collapsed { width: auto; }
-
         #widget-header {
             display: flex; align-items: center; justify-content: space-between;
             cursor: pointer; user-select: none; gap: 12px;
         }
-
         #widget-text { font-weight: bold; white-space: nowrap; }
-
         #widget-toggle { font-size: 11px; color: #666; flex-shrink: 0; }
-
         #widget-body { margin-top: 10px; }
         #widget-body.hidden { display: none; }
-
         #widget-img { width: 100%; height: auto; border-radius: 4px; }
-
         #bar-legend {
             display: flex; flex-wrap: wrap; gap: 8px 16px;
             margin-top: 8px; font-size: 11px; font-family: sans-serif;
         }
-
-        .bar-legend-item {
-            display: flex; align-items: center; gap: 5px; white-space: nowrap;
-        }
-
-        .bar-legend-dot {
-            width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
-        }
+        .bar-legend-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .bar-legend-dot  { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
 
         #legend-widget {
             position: absolute; bottom: 30px; right: 20px;
             z-index: 1000; padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.9); border: 0.4px solid #333;
+            background: rgba(255,255,255,0.9); border: 0.4px solid #333;
             border-radius: 5px; font-family: sans-serif; font-size: 13px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-
-        #legend-widget h4 {
-            margin: 0 0 10px 0; font-size: 13px; font-weight: bold;
-        }
-
+        #legend-widget h4 { margin: 0 0 10px 0; font-size: 13px; font-weight: bold; }
         .legend-item {
             display: flex; align-items: center; margin-bottom: 7px;
             cursor: pointer; user-select: none; transition: opacity 0.2s;
         }
-
         .legend-item:last-child { margin-bottom: 0; }
-
         .legend-item.disabled { opacity: 0.35; text-decoration: line-through; }
-
         .legend-dot {
             width: 14px; height: 14px; border-radius: 50%;
             border: 2px solid #fff; outline: 1px solid #aaa;
             margin-right: 8px; flex-shrink: 0;
         }
-
-        .legend-divider {
-            border: none; border-top: 0.4px solid #ccc;
-            margin: 10px 0;
-        }
-
+        .legend-divider { border: none; border-top: 0.4px solid #ccc; margin: 10px 0; }
         .legend-group-header {
             display: flex; align-items: center; gap: 6px;
             cursor: pointer; user-select: none; margin-bottom: 8px;
         }
-
         .legend-group-header.disabled h4 { opacity: 0.4; text-decoration: line-through; }
-        .legend-group-header.disabled + #cultural-sites-group { opacity: 0.4; }
-
-        .legend-category-title {
-            font-weight: bold; font-size: 13px; margin-bottom: 6px;
-        }
-
-        .legend-subtitle {
-            font-size: 11px; color: #555; margin-left: 22px; margin-bottom: 4px;
+        .legend-arc-line {
+            width: 22px; height: 3px; flex-shrink: 0; margin-right: 8px;
+            background: linear-gradient(90deg, #e74c3c, #ff6600); border-radius: 2px;
         }
     </style>
 </head>
@@ -116,6 +80,7 @@
 
     <div id="map"></div>
     <div id="heading-widget">Gothenburg Film Studios</div>
+
     <div id="activity-widget" class="collapsed">
         <div id="widget-header">
             <div id="widget-text">Activities</div>
@@ -134,8 +99,8 @@
 
     <div id="legend-widget">
         <div id="cultural-sites-header" class="legend-group-header">
-            <input type="checkbox" id="cultural-sites-checkbox" checked style="cursor:pointer; margin:0; accent-color:#c8d8d8; width:14px; height:14px;">
-            <h4 style="margin:0; display:inline; cursor:pointer;">Cultural Sites</h4>
+            <input type="checkbox" id="cultural-sites-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
+            <h4 style="margin:0;display:inline;cursor:pointer;">Cultural Sites</h4>
         </div>
         <div id="cultural-sites-group">
             <div class="legend-item" data-category="Museum"><div class="legend-dot" style="background:#e74c3c;"></div> Museum</div>
@@ -149,11 +114,11 @@
         <hr class="legend-divider">
 
         <div id="relationscape-header" class="legend-group-header">
-            <input type="checkbox" id="relationscape-checkbox" checked style="cursor:pointer; margin:0; accent-color:#c8d8d8; width:14px; height:14px;">
-            <h4 style="margin:0; display:inline; cursor:pointer;">Relationscape Lindholmen</h4>
+            <input type="checkbox" id="relationscape-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
+            <h4 style="margin:0;display:inline;cursor:pointer;">Relationscape Lindholmen</h4>
         </div>
-        <div id="relationscape-group" style="max-height:300px; overflow-y:auto;">
-            <div style="font-size:11px; color:#555; margin-bottom:6px;">Cultural value 1 and 2</div>
+        <div id="relationscape-group" style="max-height:300px;overflow-y:auto;">
+            <div style="font-size:11px;color:#555;margin-bottom:6px;">Cultural value 1 and 2</div>
             <div class="legend-item rel-item" data-index="0"><div class="legend-dot" style="background:#ff6600;"></div> Karlatornet</div>
             <div class="legend-item rel-item" data-index="1"><div class="legend-dot" style="background:#ff6600;"></div> Backa teater</div>
             <div class="legend-item rel-item" data-index="2"><div class="legend-dot" style="background:#ff6600;"></div> Lindholmens manor</div>
@@ -185,296 +150,386 @@
             <div class="legend-item rel-item" data-index="28"><div class="legend-dot" style="background:#ff6600;"></div> 3</div>
             <div class="legend-item rel-item" data-index="29"><div class="legend-dot" style="background:#ff6600;"></div> 4</div>
         </div>
+
+        <hr class="legend-divider">
+        <div style="font-size:13px;font-weight:bold;margin-bottom:8px;">Connections</div>
+        <div class="legend-item" style="pointer-events:none;margin-bottom:0;">
+            <div class="legend-arc-line"></div> Studios → Backa teater
+        </div>
     </div>
 
     <script>
         console.log("Script starting...");
 
-        // 1. Initialize Map
+        // ── 1. Map ─────────────────────────────────────────────────────────────
         var map = L.map('map').setView([57.70979, 11.93344], 16);
-
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // 2. Define Colors
+        // ── 2. Colors ──────────────────────────────────────────────────────────
         const categoryColors = {
-            "Museum": "#e74c3c",
-            "Bibliotek": "#3498db",
-            "Ateljé": "#9b59b6",
-            "Biograf": "#f1c40f",
-            "Kulturhus": "#2ecc71",
-            "default": "#95a5a6"
+            "Museum": "#e74c3c", "Bibliotek": "#3498db", "Ateljé": "#9b59b6",
+            "Biograf": "#f1c40f", "Kulturhus": "#2ecc71", "default": "#95a5a6"
         };
 
-        // Initiate Migration points
-        var migrationLayer = L.migrationLayer({
-    map: map,
-    data: migrationData,
-    pulseRadius: 15,     // The size of the "ping" at the destination
-    pulseBorderWidth: 3,
-    arcWidth: 1,         // Thickness of the line
-    arcLabel: true,      // Show the labels
-    arcLabelFont: '12px sans-serif',
-    maxWidth: 10         // Max thickness based on "value"
-});
-
-migrationLayer.addTo(map);
-
-        // 3. Define Campus Buildings
+        // ── 3. Campus Buildings ────────────────────────────────────────────────
         var campusData = [
-            {
-                name: "Studios building",
-                points: [
-                    [57.70951662524695, 11.931938382864644],
-                    [57.70970176918331, 11.932277900706879],
-                    [57.7094855863034,  11.932706919283135],
-                    [57.709535974909755, 11.93279819983087],
-                    [57.70938155799158, 11.933111596379405],
-                    [57.709846432193814, 11.93392703594256],
-                    [57.71024140803186, 11.933105511009643],
-                    [57.71010932795221, 11.93287650459473],
-                    [57.71013559888016, 11.932823692101266],
-                    [57.71001636019332, 11.932439974500426],
-                    [57.709693475936064, 11.93186314412037],
-                    [57.70959299269569, 11.931838064537516],
-                    [57.70951662524695, 11.931938382864644]
-                ]
-            },
+            { name: "Studios building", points: [
+                [57.70951662524695,11.931938382864644],[57.70970176918331,11.932277900706879],
+                [57.7094855863034,11.932706919283135],[57.709535974909755,11.93279819983087],
+                [57.70938155799158,11.933111596379405],[57.709846432193814,11.93392703594256],
+                [57.71024140803186,11.933105511009643],[57.71010932795221,11.93287650459473],
+                [57.71013559888016,11.932823692101266],[57.71001636019332,11.932439974500426],
+                [57.709693475936064,11.93186314412037],[57.70959299269569,11.931838064537516],
+                [57.70951662524695,11.931938382864644]
+            ]},
+            { name: "Rehearsal building", points: [
+                [57.70928745782078,11.932208794353187],[57.70902758335501,11.932518927214943],
+                [57.70921998416708,11.932836563290579],[57.7093910062529,11.932502670249931],
+                [57.70928745782078,11.932208794353187]
+            ]},
+            { name: "Empty building", points: [
+                [57.70891610280418,11.932665856538392],[57.70869053782431,11.93293811440671],
+                [57.708743539557986,11.9330961624066],[57.70896972050261,11.932820443633346],
+                [57.70891610280418,11.932665856538392]
+            ]},
+            { name: "Offices", points: [
+                [57.708124266181585,11.933620724797635],[57.70795570644813,11.93382867907107],
+                [57.707956472630315,11.934501303584142],[57.70803845405169,11.93464758865909],
+                [57.70815491332178,11.93439087269374],[57.708092852836245,11.934268968464693],
+                [57.70809438519521,11.933930504956834],[57.708187858967875,11.933797127388374],
+                [57.708124266181585,11.933620724797635]
+            ]},
+            { name: "Deposit", points: [
+                [57.708321871241566,11.933638322418574],[57.70825181264752,11.933778903815977],
+                [57.70823724044297,11.933847096286001],[57.708335322476074,11.934025445819628],
+                [57.70843228331083,11.933828212216696],[57.708321871241566,11.933638322418574]
+            ]}
         ];
 
-        // 4. Draw Campus Buildings — FIX: declare buildinglist, unified forEach, stop propagation
         var buildingList = [];
-
-        campusData.forEach(function(building) {
-            var poly = L.polygon(building.points, {
-                color: 'red',
-                weight: 2,
-                fillOpacity: 0.2
-            }).addTo(map);
-
-            // FIX: stop propagation so map click doesn't immediately reset the fill
-            poly.on('click', function(e) {
-                L.DomEvent.stopPropagation(e);
-                this.setStyle({ fillOpacity: 0.5 });
-            });
-
-            poly.bindPopup(building.name);
-
-            // FIX: push into the declared array
+        campusData.forEach(function(b) {
+            var poly = L.polygon(b.points, { color:'red', weight:2, fillOpacity:0.2 }).addTo(map);
+            poly.on('click', function(e) { L.DomEvent.stopPropagation(e); this.setStyle({ fillOpacity:0.5 }); });
+            poly.bindPopup(b.name);
             buildingList.push(poly);
         });
+        map.on('click', function() { buildingList.forEach(function(b){ b.setStyle({ fillOpacity:0.2 }); }); });
 
-        // 5. When the MAP background is clicked: reset all buildings
-        map.on('click', function() {
-            buildingList.forEach(function(b) {
-                b.setStyle({ fillOpacity: 0.2 });
-            });
-        });
-
-        // 6. Load Shapefile — store layers grouped by category for toggling
-        var categoryLayers = {}; // { "Museum": [layer, layer, ...], ... }
-        var hiddenCategories = new Set();
-
+        // ── 4. Shapefile ───────────────────────────────────────────────────────
+        var categoryLayers = {}, hiddenCategories = new Set();
         async function loadCulturalData() {
             try {
-                const geojsonData = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
-
-                L.geoJSON(geojsonData, {
-                    pointToLayer: function(feature, latlng) {
-                        const props = feature.properties;
-                        const category = props.Kategori || props.Typ || "";
-                        const colorKey = categoryColors[category] ? category : "default";
-                        const color = categoryColors[colorKey];
-
-                        const marker = L.circleMarker(latlng, {
-                            radius: 8,
-                            fillColor: color,
-                            color: "#fff",
-                            weight: 2,
-                            fillOpacity: 0.9
-                        });
-
-                        // Store marker under its category key
-                        if (!categoryLayers[colorKey]) categoryLayers[colorKey] = [];
-                        categoryLayers[colorKey].push(marker);
-
-                        return marker;
+                const gj = await shp("kulturverksamheter_utdrag_GBG_251212.zip");
+                L.geoJSON(gj, {
+                    pointToLayer: function(f, ll) {
+                        var cat = f.properties.Kategori || f.properties.Typ || "";
+                        var key = categoryColors[cat] ? cat : "default";
+                        var m = L.circleMarker(ll, { radius:8, fillColor:categoryColors[key], color:"#fff", weight:2, fillOpacity:0.9 });
+                        if (!categoryLayers[key]) categoryLayers[key] = [];
+                        categoryLayers[key].push(m);
+                        return m;
                     },
-                    onEachFeature: function(feature, layer) {
-                        layer.bindPopup(
-                            "<strong>" + (feature.properties.Kategori || "Cultural Site") + "</strong>"
-                        );
+                    onEachFeature: function(f, l) {
+                        l.bindPopup("<strong>" + (f.properties.Kategori || "Cultural Site") + "</strong>");
                     }
                 }).addTo(map);
-
-                console.log("Shapefile loaded successfully!");
-            } catch (err) {
-                console.error("Shapefile Error:", err);
-            }
+                console.log("Shapefile loaded!");
+            } catch(e) { console.error("Shapefile Error:", e); }
         }
-
         loadCulturalData();
 
-        // 9. Custom Points Layer
+        // ── 5. Custom Points ───────────────────────────────────────────────────
         var customPoints = [
-            { name: "Karlatornet", lat: 57.70993302217523, lng: 11.939144656326647 },
-            { name: "Backa teater", lat: 57.7059134823545, lng: 11.935946002968043 },
-            { name: "Lindholmens manor", lat: 57.70822191757826, lng: 11.932127495719401 },
-            { name: "Adolfs Hill", lat: 57.70874624233934, lng: 11.931688165065507 },
-            { name: "Bostadsbebyggelsen", lat: 57.70403715038053, lng: 11.92922023307963 },
-            { name: "Kuggen (Chalmers)", lat: 57.706705768556226, lng: 11.938823849178842 },
-            { name: "The dome (temporary)", lat: 57.7069678751202, lng: 11.938024547056298 },
-            { name: "Skatberget", lat: 57.703394567613806, lng: 11.932637758777398 },
-            { name: "The dry dock facing the river", lat: 57.70390322289196, lng: 11.931243230625997 },
-            { name: "Ancient traces and monuments", lat: 57.709106700082025, lng: 11.931282345782982 },
-            { name: "The railway 'the harbourlink'", lat: 57.711460035312754, lng: 11.933624363134244 },
-            { name: "Lundbyleden – traffic barrier", lat: 57.71194583240717, lng: 11.933995956694147 },
-            { name: "The Propellerarea (Kvarteret Propellern)", lat: 57.709876323746826, lng: 11.933281689779417 },
-            { name: "28. Lundby Mekaniska verkstad – KV-konstskola & Balettakademien Göteborg", lat: 57.70918449081427, lng: 11.936593557667631 },
-            { name: "29. Göteborgs galvaniseringsfabrik (removed)", lat: 57.7103486083178, lng: 11.938426305917357 },
-            { name: "30. Lindholmen 735:491", lat: 57.70800, lng: 11.93419 },
-            { name: "A", lat: 57.70882724595256, lng: 11.931242712062327 },
-            { name: "B", lat: 57.706838332579316, lng: 11.927863128855241 },
-            { name: "C", lat: 57.70655370905854, lng: 11.931877856803176 },
-            { name: "D", lat: 57.704201539462396, lng: 11.929593145840556 },
-            { name: "E", lat: 57.70418782373976, lng: 11.933212744107175 },
-            { name: "F", lat: 57.70705429686395, lng: 11.93738426693218 },
-            { name: "G", lat: 57.707081726132756, lng: 11.938334090590796 },
-            { name: "H", lat: 57.70867258817404, lng: 11.940605966098568 },
-            { name: "I", lat: 57.70904286500106, lng: 11.93725591238372 },
-            { name: "Aftonstjärnan", lat: 57.70701587605392, lng: 11.932744845029957 },
-            { name: "1", lat: 57.703525358475936, lng: 11.934794455961411 },
-            { name: "2", lat: 57.70589850286558, lng: 11.93873193861855 },
-            { name: "3", lat: 57.7063683140276, lng: 11.946702964372975 },
-            { name: "4", lat: 57.7060645183475, lng: 11.9493100717401 }
+            { name:"Karlatornet",                    lat:57.70993302217523,  lng:11.939144656326647 },
+            { name:"Backa teater",                   lat:57.7059134823545,   lng:11.935946002968043 },
+            { name:"Lindholmens manor",              lat:57.70822191757826,  lng:11.932127495719401 },
+            { name:"Adolfs Hill",                    lat:57.70874624233934,  lng:11.931688165065507 },
+            { name:"Bostadsbebyggelsen",             lat:57.70403715038053,  lng:11.92922023307963  },
+            { name:"Kuggen (Chalmers)",              lat:57.706705768556226, lng:11.938823849178842 },
+            { name:"The dome (temporary)",           lat:57.7069678751202,   lng:11.938024547056298 },
+            { name:"Skatberget",                     lat:57.703394567613806, lng:11.932637758777398 },
+            { name:"The dry dock facing the river",  lat:57.70390322289196,  lng:11.931243230625997 },
+            { name:"Ancient traces and monuments",   lat:57.709106700082025, lng:11.931282345782982 },
+            { name:"The railway 'the harbourlink'",  lat:57.711460035312754, lng:11.933624363134244 },
+            { name:"Lundbyleden – traffic barrier",  lat:57.71194583240717,  lng:11.933995956694147 },
+            { name:"The Propellerarea (Kvarteret Propellern)", lat:57.709876323746826, lng:11.933281689779417 },
+            { name:"28. Lundby Mekaniska verkstad",  lat:57.70918449081427,  lng:11.936593557667631 },
+            { name:"29. Göteborgs galvaniseringsfabrik (removed)", lat:57.7103486083178, lng:11.938426305917357 },
+            { name:"30. Lindholmen 735:491",         lat:57.70800,           lng:11.93419           },
+            { name:"A",  lat:57.70882724595256,  lng:11.931242712062327 },
+            { name:"B",  lat:57.706838332579316, lng:11.927863128855241 },
+            { name:"C",  lat:57.70655370905854,  lng:11.931877856803176 },
+            { name:"D",  lat:57.704201539462396, lng:11.929593145840556 },
+            { name:"E",  lat:57.70418782373976,  lng:11.933212744107175 },
+            { name:"F",  lat:57.70705429686395,  lng:11.93738426693218  },
+            { name:"G",  lat:57.707081726132756, lng:11.938334090590796 },
+            { name:"H",  lat:57.70867258817404,  lng:11.940605966098568 },
+            { name:"I",  lat:57.70904286500106,  lng:11.93725591238372  },
+            { name:"Aftonstjärnan", lat:57.70701587605392, lng:11.932744845029957 },
+            { name:"1",  lat:57.703525358475936, lng:11.934794455961411 },
+            { name:"2",  lat:57.70589850286558,  lng:11.93873193861855  },
+            { name:"3",  lat:57.7063683140276,   lng:11.946702964372975 },
+            { name:"4",  lat:57.7060645183475,   lng:11.9493100717401   }
         ];
 
         var customMarkers = [];
-        customPoints.forEach(function(point) {
-            var marker = L.circleMarker([point.lat, point.lng], {
-                radius: 9,
-                fillColor: "#ff6600",
-                color: "#fff",
-                weight: 2,
-                fillOpacity: 1
-            }).bindPopup("<strong>" + point.name + "</strong>").addTo(map);
-            customMarkers.push(marker);
+        customPoints.forEach(function(p) {
+            var m = L.circleMarker([p.lat, p.lng], {
+                radius:9, fillColor:"#ff6600", color:"#fff", weight:2, fillOpacity:1
+            }).bindPopup("<strong>" + p.name + "</strong>").addTo(map);
+            customMarkers.push(m);
         });
 
-        // 11. Relationscape Lindholmen group toggle
-        function toggleRelationscape(visible) {
-            document.getElementById('relationscape-header').classList.toggle('disabled', !visible);
-            customMarkers.forEach(function(m) {
-                m.setStyle({ fillOpacity: visible ? 1 : 0, opacity: visible ? 1 : 0 });
-            });
-            document.querySelectorAll('#relationscape-group .rel-item').forEach(function(item) {
-                item.classList.toggle('disabled', !visible);
-            });
-        }
+        // ── 6. Animated Migration Arc (self-contained canvas overlay) ──────────
+        // Replicates leaflet.migration visuals without any external plugin dependency.
+        // Arc: Studios building centroid → Backa teater
+        // Quadratic Bézier on canvas, animated travelling dot + pulsing source ring.
 
-        document.getElementById('relationscape-header').addEventListener('click', function(e) {
-            if (e.target.id === 'relationscape-checkbox') return;
-            var cb = document.getElementById('relationscape-checkbox');
-            cb.checked = !cb.checked;
-            toggleRelationscape(cb.checked);
-        });
+        var MigrationLayer = L.Layer.extend({
+            initialize: function(arcs, options) {
+                this._arcs    = arcs;   // [{ from:[lat,lng], to:[lat,lng], label }]
+                this._running = false;
+                this._rafId   = null;
+                this._t       = 0;      // animation progress 0→1
+                this._pulse   = 0;      // pulse radius progress 0→1
+                L.setOptions(this, options);
+            },
 
-        document.getElementById('relationscape-checkbox').addEventListener('change', function() {
-            toggleRelationscape(this.checked);
-        });
+            onAdd: function(map) {
+                this._map = map;
+                // Create canvas sized to the map pane
+                this._canvas = L.DomUtil.create('canvas', 'migration-canvas');
+                var size = map.getSize();
+                this._canvas.width  = size.x;
+                this._canvas.height = size.y;
+                this._canvas.style.position        = 'absolute';
+                this._canvas.style.top             = '0';
+                this._canvas.style.left            = '0';
+                this._canvas.style.pointerEvents   = 'none';
+                this._canvas.style.zIndex          = '450';
+                map.getPanes().overlayPane.appendChild(this._canvas);
 
-        // Individual toggle for each Relationscape point
-        document.querySelectorAll('.rel-item').forEach(function(item) {
-            item.addEventListener('click', function() {
-                const idx = parseInt(this.dataset.index);
-                const marker = customMarkers[idx];
-                const isDisabled = this.classList.toggle('disabled');
-                marker.setStyle({
-                    fillOpacity: isDisabled ? 0 : 1,
-                    opacity: isDisabled ? 0 : 1
+                map.on('moveend zoomend resize', this._reset, this);
+                this._reset();
+                this._startAnimation();
+            },
+
+            onRemove: function(map) {
+                this._stopAnimation();
+                map.getPanes().overlayPane.removeChild(this._canvas);
+                map.off('moveend zoomend resize', this._reset, this);
+            },
+
+            _reset: function() {
+                var size = this._map.getSize();
+                this._canvas.width  = size.x;
+                this._canvas.height = size.y;
+                // Reposition canvas to top-left of map pane
+                var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+                L.DomUtil.setPosition(this._canvas, topLeft);
+            },
+
+            // Convert [lat,lng] → canvas pixel point
+            _project: function(latlng) {
+                return this._map.latLngToContainerPoint(L.latLng(latlng[0], latlng[1]));
+            },
+
+            _startAnimation: function() {
+                this._running = true;
+                var self = this;
+                var last = null;
+                function frame(ts) {
+                    if (!self._running) return;
+                    if (last === null) last = ts;
+                    var dt = (ts - last) / 1000;
+                    last = ts;
+                    // t cycles 0→1 every 2 seconds
+                    self._t     = (self._t + dt / 2.0) % 1.0;
+                    self._pulse = (self._pulse + dt / 1.2) % 1.0;
+                    self._draw();
+                    self._rafId = requestAnimationFrame(frame);
+                }
+                this._rafId = requestAnimationFrame(frame);
+            },
+
+            _stopAnimation: function() {
+                this._running = false;
+                if (this._rafId) cancelAnimationFrame(this._rafId);
+            },
+
+            _draw: function() {
+                var ctx    = this._canvas.getContext('2d');
+                var w      = this._canvas.width;
+                var h      = this._canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                var self = this;
+                this._arcs.forEach(function(arc) {
+                    var p0 = self._project(arc.from);
+                    var p1 = self._project(arc.to);
+
+                    // Control point: lift the midpoint perpendicular to the line
+                    var mx  = (p0.x + p1.x) / 2;
+                    var my  = (p0.y + p1.y) / 2;
+                    var dx  = p1.x - p0.x;
+                    var dy  = p1.y - p0.y;
+                    var len = Math.sqrt(dx*dx + dy*dy);
+                    // Lift = 35% of chord length, perpendicular upward
+                    var lift = len * 0.35;
+                    var cx  = mx - (dy / len) * lift;
+                    var cy  = my + (dx / len) * lift;
+
+                    // ── Draw static arc ──────────────────────────────────────
+                    ctx.beginPath();
+                    ctx.moveTo(p0.x, p0.y);
+                    ctx.quadraticCurveTo(cx, cy, p1.x, p1.y);
+                    ctx.strokeStyle = 'rgba(231, 76, 60, 0.45)';
+                    ctx.lineWidth   = 1.5;
+                    ctx.stroke();
+
+                    // ── Pulsing ring at source ───────────────────────────────
+                    var pr     = 4 + self._pulse * 14;   // radius 4→18
+                    var palpha = (1 - self._pulse) * 0.8;
+                    ctx.beginPath();
+                    ctx.arc(p0.x, p0.y, pr, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(231, 76, 60, ' + palpha + ')';
+                    ctx.lineWidth   = 2;
+                    ctx.stroke();
+
+                    // Small solid dot at source
+                    ctx.beginPath();
+                    ctx.arc(p0.x, p0.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fill();
+
+                    // ── Travelling dot along the Bézier ─────────────────────
+                    var t  = self._t;
+                    var u  = 1 - t;
+                    // Quadratic Bézier point
+                    var tx = u*u*p0.x + 2*u*t*cx + t*t*p1.x;
+                    var ty = u*u*p0.y + 2*u*t*cy + t*t*p1.y;
+                    // Tail: dot slightly behind
+                    var t2  = Math.max(0, t - 0.07);
+                    var u2  = 1 - t2;
+                    var tx2 = u2*u2*p0.x + 2*u2*t2*cx + t2*t2*p1.x;
+                    var ty2 = u2*u2*p0.y + 2*u2*t2*cy + t2*t2*p1.y;
+
+                    // Glowing tail
+                    ctx.beginPath();
+                    ctx.moveTo(tx2, ty2);
+                    ctx.lineTo(tx, ty);
+                    ctx.strokeStyle = 'rgba(255, 102, 0, 0.6)';
+                    ctx.lineWidth   = 3;
+                    ctx.lineCap     = 'round';
+                    ctx.stroke();
+
+                    // Bright head dot
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff6600';
+                    ctx.shadowBlur  = 8;
+                    ctx.shadowColor = '#ff6600';
+                    ctx.fill();
+                    ctx.shadowBlur  = 0;
+
+                    // ── Labels ───────────────────────────────────────────────
+                    if (arc.label) {
+                        ctx.font      = 'bold 11px sans-serif';
+                        ctx.fillStyle = '#333';
+                        ctx.fillText(arc.from_label || 'Studios building',
+                            p0.x + 8, p0.y - 8);
+                        ctx.fillText(arc.to_label   || 'Backa teater',
+                            p1.x + 8, p1.y - 8);
+                    }
                 });
-            });
+            }
         });
+
+        // Instantiate with one arc: Studios building centroid → Backa teater
+        var migrationLayer = new MigrationLayer([
+            {
+                from:       [57.70988, 11.93289],          // Studios building centroid
+                to:         [57.7059134823545, 11.935946002968043],  // Backa teater
+                label:      true,
+                from_label: 'Studios building',
+                to_label:   'Backa teater'
+            }
+        ]);
+        migrationLayer.addTo(map);
+        console.log("Migration arc layer added.");
+
+        // ── 7. Activity widget ─────────────────────────────────────────────────
         document.getElementById('widget-header').addEventListener('click', function() {
-            const widget = document.getElementById('activity-widget');
-            const body = document.getElementById('widget-body');
-            const toggle = document.getElementById('widget-toggle');
-            const collapsed = body.classList.toggle('hidden');
+            var body = document.getElementById('widget-body');
+            var widget = document.getElementById('activity-widget');
+            var toggle = document.getElementById('widget-toggle');
+            var collapsed = body.classList.toggle('hidden');
             widget.classList.toggle('collapsed', collapsed);
             toggle.textContent = collapsed ? '▼' : '▲';
         });
 
-        // 10. Cultural Sites group toggle
+        // ── 8. Cultural Sites toggle ───────────────────────────────────────────
         var culturalSitesVisible = true;
         document.getElementById('cultural-sites-header').addEventListener('click', function(e) {
-            // Avoid double-firing when clicking directly on the checkbox
             if (e.target.id === 'cultural-sites-checkbox') return;
-            document.getElementById('cultural-sites-checkbox').checked = !document.getElementById('cultural-sites-checkbox').checked;
-            toggleCulturalSites(document.getElementById('cultural-sites-checkbox').checked);
+            var cb = document.getElementById('cultural-sites-checkbox');
+            cb.checked = !cb.checked; toggleCulturalSites(cb.checked);
         });
-
         document.getElementById('cultural-sites-checkbox').addEventListener('change', function() {
             toggleCulturalSites(this.checked);
         });
-
         function toggleCulturalSites(visible) {
             culturalSitesVisible = visible;
             document.getElementById('cultural-sites-header').classList.toggle('disabled', !visible);
-
-            Object.values(categoryLayers).forEach(function(layers) {
-                layers.forEach(function(l) {
-                    l.setStyle({
-                        fillOpacity: visible ? 0.9 : 0,
-                        opacity: visible ? 1 : 0
-                    });
-                });
+            Object.values(categoryLayers).forEach(function(ls) {
+                ls.forEach(function(l) { l.setStyle({ fillOpacity: visible?0.9:0, opacity: visible?1:0 }); });
             });
-
-            document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
-                if (visible) item.classList.remove('disabled');
+            document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(i) {
+                if (visible) i.classList.remove('disabled');
             });
             hiddenCategories.clear();
         }
-
-        // 7. Legend toggle — click to show/hide a category
-        document.querySelectorAll('.legend-item').forEach(function(item) {
+        document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
             item.addEventListener('click', function() {
-                const cat = this.dataset.category;
-                const layers = categoryLayers[cat];
-
+                var cat = this.dataset.category, layers = categoryLayers[cat];
                 if (hiddenCategories.has(cat)) {
-                    // Turn ON
-                    hiddenCategories.delete(cat);
-                    this.classList.remove('disabled');
-                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0.9, opacity: 1 }); });
+                    hiddenCategories.delete(cat); this.classList.remove('disabled');
+                    if (layers) layers.forEach(function(l){ l.setStyle({ fillOpacity:0.9, opacity:1 }); });
                 } else {
-                    // Turn OFF
-                    hiddenCategories.add(cat);
-                    this.classList.add('disabled');
-                    if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0, opacity: 0 }); });
-                    
-// Migration points
- 
-            var migrationData = [
-    {
-        from: [11.9746, 57.7089], // Gothenburg (Note: [Lng, Lat] order for this plugin!)
-        to: [18.0686, 59.3293],   // Stockholm
-        labels: ["Gothenburg", "Stockholm"],
-        color: "#ff7800",
-        value: 10 // This determines the pulse/arc thickness
-    },
-    {
-        from: [11.9746, 57.7089], 
-        to: [12.5683, 55.6761],   // Copenhagen
-        labels: ["Gothenburg", "Copenhagen"],
-        color: "#2ecc71",
-        value: 5
-    }
-];
+                    hiddenCategories.add(cat); this.classList.add('disabled');
+                    if (layers) layers.forEach(function(l){ l.setStyle({ fillOpacity:0, opacity:0 }); });
                 }
             });
         });
+
+        // ── 9. Relationscape toggle ────────────────────────────────────────────
+        function toggleRelationscape(visible) {
+            document.getElementById('relationscape-header').classList.toggle('disabled', !visible);
+            customMarkers.forEach(function(m) {
+                m.setStyle({ fillOpacity: visible?1:0, opacity: visible?1:0 });
+            });
+            document.querySelectorAll('#relationscape-group .rel-item').forEach(function(i) {
+                i.classList.toggle('disabled', !visible);
+            });
+        }
+        document.getElementById('relationscape-header').addEventListener('click', function(e) {
+            if (e.target.id === 'relationscape-checkbox') return;
+            var cb = document.getElementById('relationscape-checkbox');
+            cb.checked = !cb.checked; toggleRelationscape(cb.checked);
+        });
+        document.getElementById('relationscape-checkbox').addEventListener('change', function() {
+            toggleRelationscape(this.checked);
+        });
+        document.querySelectorAll('.rel-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                var idx = parseInt(this.dataset.index);
+                var isDisabled = this.classList.toggle('disabled');
+                customMarkers[idx].setStyle({ fillOpacity: isDisabled?0:1, opacity: isDisabled?0:1 });
+            });
+        });
+
     </script>
 </body>
 </html>
