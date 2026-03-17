@@ -7,6 +7,9 @@
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://unpkg.com/leaflet.migrationLayer/dist/leaflet.migrationLayer.js"></script>
+   
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; }
@@ -204,6 +207,20 @@
             "default": "#95a5a6"
         };
 
+        // Initiate Migration points
+        var migrationLayer = L.migrationLayer({
+    map: map,
+    data: migrationData,
+    pulseRadius: 15,     // The size of the "ping" at the destination
+    pulseBorderWidth: 3,
+    arcWidth: 1,         // Thickness of the line
+    arcLabel: true,      // Show the labels
+    arcLabelFont: '12px sans-serif',
+    maxWidth: 10         // Max thickness based on "value"
+});
+
+migrationLayer.addTo(map);
+
         // 3. Define Campus Buildings
         var campusData = [
             {
@@ -224,51 +241,6 @@
                     [57.70951662524695, 11.931938382864644]
                 ]
             },
-            {
-                name: "Rehearsal building",
-                points: [
-                    [57.70928745782078, 11.932208794353187],
-                    [57.70902758335501, 11.932518927214943],
-                    [57.70921998416708, 11.932836563290579],
-                    [57.7093910062529,  11.932502670249931],
-                    [57.70928745782078, 11.932208794353187]
-                ]
-            },
-            {
-                name: "Empty building",
-                points: [
-                    [57.70891610280418, 11.932665856538392],
-                    [57.70869053782431, 11.93293811440671],
-                    [57.708743539557986, 11.9330961624066],
-                    [57.70896972050261, 11.932820443633346],
-                    [57.70891610280418, 11.932665856538392]
-                ]
-            },
-            {
-                name: "Offices",
-                points: [
-                    [57.708124266181585, 11.933620724797635],
-                    [57.70795570644813, 11.93382867907107],
-                    [57.707956472630315, 11.934501303584142],
-                    [57.70803845405169, 11.93464758865909],
-                    [57.70815491332178, 11.93439087269374],
-                    [57.708092852836245, 11.934268968464693],
-                    [57.70809438519521, 11.933930504956834],
-                    [57.708187858967875, 11.933797127388374],
-                    [57.708124266181585, 11.933620724797635]
-                ]
-            },
-            {
-                name: "Deposit",
-                points: [
-                    [57.708321871241566, 11.933638322418574],
-                    [57.70825181264752, 11.933778903815977],
-                    [57.70823724044297, 11.933847096286001],
-                    [57.708335322476074, 11.934025445819628],
-                    [57.70843228331083, 11.933828212216696],
-                    [57.708321871241566, 11.933638322418574]
-                ]
-            }
         ];
 
         // 4. Draw Campus Buildings — FIX: declare buildinglist, unified forEach, stop propagation
@@ -481,6 +453,25 @@
                     hiddenCategories.add(cat);
                     this.classList.add('disabled');
                     if (layers) layers.forEach(function(l) { l.setStyle({ fillOpacity: 0, opacity: 0 }); });
+                    
+// Migration points
+ 
+            var migrationData = [
+    {
+        from: [11.9746, 57.7089], // Gothenburg (Note: [Lng, Lat] order for this plugin!)
+        to: [18.0686, 59.3293],   // Stockholm
+        labels: ["Gothenburg", "Stockholm"],
+        color: "#ff7800",
+        value: 10 // This determines the pulse/arc thickness
+    },
+    {
+        from: [11.9746, 57.7089], 
+        to: [12.5683, 55.6761],   // Copenhagen
+        labels: ["Gothenburg", "Copenhagen"],
+        color: "#2ecc71",
+        value: 5
+    }
+];
                 }
             });
         });
