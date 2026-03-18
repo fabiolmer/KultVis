@@ -313,23 +313,21 @@
         }).addTo(map);
 
         // ── Zoom view buttons ──────────────────────────────────────────────────
-        // Global extent: fit all capoeira source coords + Studios target
-        var STUDIOS_LL = [57.70988, 11.93289];
-        var allMigrationPoints = [
-            STUDIOS_LL,
-            [57.7059134823545, 11.935946002968043], // Backa teater
-            [60.1699, 24.9384],  [59.4370, 24.7536],  [54.6872, 25.2797],
-            [35.8997, 14.5147],  [51.5074, -0.1278],  [38.8951, -77.0369],
-            [52.2297, 21.0122],  [50.0755, 14.4378],  [48.2082, 16.3738],
-            [4.7110,  -74.0721], [40.4168, -3.7038],  [41.9028, 12.4964],
-            [49.6117, 6.1319],   [52.5200, 13.4050],  [38.7169, -9.1395],
-            [52.3676, 4.9041],   [48.8566, 2.3522],   [50.8503, 4.3517],
-            [-15.7801, -47.9292]
-        ];
-
         document.getElementById('btn-zoom-world').addEventListener('click', function() {
-            var bounds = L.latLngBounds(allMigrationPoints);
-            map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+            var points = [];
+
+            if (capoeiraVisible) {
+                capoeiraArcs.forEach(function(a) { points.push(a.from); });
+            }
+            if (concertLargeVisible) {
+                concertLargeArcs.forEach(function(a) { points.push(a.from); });
+            }
+
+            // Always include Studios building as the target if any layer is active
+            if (points.length > 0) {
+                points.push(STUDIOS);
+                map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 10 });
+            }
         });
 
         document.getElementById('btn-zoom-local').addEventListener('click', function() {
