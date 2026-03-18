@@ -73,117 +73,60 @@
 
         .legend-collapse-arrow {
             margin-left: auto;
-            font-size: 10px;
-            color: #888;
-            cursor: pointer;
-            padding: 0 2px;
-            transition: transform 0.25s ease;
-            line-height: 1;
-            flex-shrink: 0;
-            display: inline-block;
+            font-size: 10px; color: #888; cursor: pointer;
+            padding: 0 2px; transition: transform 0.25s ease;
+            line-height: 1; flex-shrink: 0; display: inline-block;
             transform: rotate(0deg);
         }
         .legend-collapse-arrow.collapsed { transform: rotate(90deg); }
 
-        /* Collapsible legend groups — collapses upward via transform */
         .legend-group-body {
             overflow: hidden;
             transition: max-height 0.25s ease, opacity 0.2s ease;
-            max-height: 600px;
-            opacity: 1;
-            transform-origin: top;
+            max-height: 600px; opacity: 1; transform-origin: top;
         }
-        .legend-group-body.collapsed {
-            max-height: 0 !important;
-            opacity: 0;
-        }
+        .legend-group-body.collapsed { max-height: 0 !important; opacity: 0; }
 
         .migration-hover-tooltip {
-            position: fixed;
-            z-index: 9999;
-            background: rgba(255,255,255,0.92);
-            border: 0.4px solid #999;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-family: sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            color: #333;
-            pointer-events: none;
-            white-space: nowrap;
+            position: fixed; z-index: 9999;
+            background: rgba(255,255,255,0.92); border: 0.4px solid #999;
+            border-radius: 4px; padding: 4px 8px;
+            font-family: sans-serif; font-size: 12px; font-weight: bold;
+            color: #333; pointer-events: none; white-space: nowrap;
             box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
 
-        /* Zoom view buttons — exact copy of Leaflet's .leaflet-bar style */
         #zoom-extra {
-            position: absolute;
-            top: 82px;
-            left: 10px;
-            z-index: 1000;
-            border-radius: 4px;
-            border: 2px solid rgba(0,0,0,0.2);
-            background-clip: padding-box;
+            position: absolute; top: 82px; left: 10px;
+            z-index: 1000; border-radius: 4px;
+            border: 2px solid rgba(0,0,0,0.2); background-clip: padding-box;
         }
-        #zoom-extra .leaflet-bar {
-            margin: 0;
-            border: none;
-            box-shadow: none; /* shadow already on wrapper */
-        }
+        #zoom-extra .leaflet-bar { margin: 0; border: none; box-shadow: none; }
         #zoom-extra a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            line-height: 30px;
-            text-align: center;
-            text-decoration: none;
-            font-size: 18px;
-            color: #333;
-            background: #fff;
-            border-bottom: 1px solid #ccc;
-            cursor: pointer;
-            user-select: none;
-            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; line-height: 30px; text-align: center;
+            text-decoration: none; font-size: 18px; color: #333; background: #fff;
+            border-bottom: 1px solid #ccc; cursor: pointer; user-select: none; position: relative;
         }
         #zoom-extra a .zoom-label {
-            display: none;
-            position: absolute;
-            left: 36px;
-            top: 50%;
+            display: none; position: absolute; left: 36px; top: 50%;
             transform: translateY(-50%);
-            background: rgba(255,255,255,0.95);
-            border: 0.4px solid #999;
-            border-radius: 4px;
-            padding: 3px 8px;
-            font-family: sans-serif;
-            font-size: 12px;
-            color: #333;
-            white-space: nowrap;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-            pointer-events: none;
+            background: rgba(255,255,255,0.95); border: 0.4px solid #999;
+            border-radius: 4px; padding: 3px 8px; font-family: sans-serif;
+            font-size: 12px; color: #333; white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15); pointer-events: none;
         }
-        #zoom-extra a:hover .zoom-label {
-            display: block;
-        }
-        #zoom-extra a:first-child {
-            border-radius: 4px 4px 0 0;
-        }
-        #zoom-extra a:last-child {
-            border-bottom: none;
-            border-radius: 0 0 4px 4px;
-        }
-        #zoom-extra a:hover {
-            background: #f4f4f4;
-            color: #333;
-        }    </style>
+        #zoom-extra a:hover .zoom-label { display: block; }
+        #zoom-extra a:first-child { border-radius: 4px 4px 0 0; }
+        #zoom-extra a:last-child   { border-bottom: none; border-radius: 0 0 4px 4px; }
+        #zoom-extra a:hover        { background: #f4f4f4; color: #333; }
+    </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="heading-widget">Gothenburg Film Studios</div>
 
-    <!-- Zoom view buttons — styled to match Leaflet's native zoom control -->
     <div id="zoom-extra">
         <div class="leaflet-bar leaflet-control">
             <a id="btn-zoom-world" title="Fit all migration connections" role="button" style="display:flex;align-items:center;justify-content:center;">
@@ -285,42 +228,42 @@
         <div id="capoeira-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="capoeira-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Capoeira — 20 countries
+                Capoeira workshop
             </div>
             <button id="capoeira-toggle-btn" title="Toggle Capoeira arcs" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         <div id="concert-large-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="concert-large-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Concert, Large — #1 — Norway, Västra Götaland
+                Concert, large #1
             </div>
             <button id="concert-large-toggle-btn" title="Toggle Concert Large #1" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         <div id="concert-large2-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="concert-large2-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Concert, Large — #2
+                Concert, large — #2
             </div>
             <button id="concert-large2-toggle-btn" title="Toggle Concert Large #2" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         <div id="concert-medium3-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="concert-medium3-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Concert, Medium — #3
+                Concert, medium — #3
             </div>
             <button id="concert-medium3-toggle-btn" title="Toggle Concert Medium #3" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         <div id="fair-large4-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="fair-large4-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Fair, Large — #4
+                Fair, large — #4
             </div>
             <button id="fair-large4-toggle-btn" title="Toggle Fair Large #4" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         <div id="concert-medium5-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="concert-medium5-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Concert, Medium — #5
+                Concert, medium — #5
             </div>
             <button id="concert-medium5-toggle-btn" title="Toggle Concert Medium #5" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
@@ -340,7 +283,7 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // ── Zoom view buttons ──────────────────────────────────────────────────
+        // ── Zoom buttons ───────────────────────────────────────────────────────
         document.getElementById('btn-zoom-world').addEventListener('click', function() {
             var points = [];
             var activeLayers = [
@@ -362,8 +305,8 @@
 
         document.getElementById('btn-zoom-local').addEventListener('click', function() {
             map.fitBounds([
-                [57.703700110440614, 11.930358409881592],  // SW
-                [57.71250399593388,  11.952331066131594]   // NE
+                [57.703700110440614, 11.930358409881592],
+                [57.71250399593388,  11.952331066131594]
             ], { animate: true });
         });
 
@@ -483,47 +426,28 @@
         });
 
         // ── 6. MigrationLayer ──────────────────────────────────────────────────
-        // KEY FIX: canvas lives in map.getContainer() directly (not overlayPane).
-        // overlayPane gets CSS-transformed by Leaflet during zoom animations, which
-        // offsets the canvas. The map container itself is never transformed, so
-        // anchoring the canvas there — and re-projecting lat/lng every rAF — keeps
-        // arcs pixel-perfect at every zoom level and during smooth zoom animations.
         var MigrationLayer = L.Layer.extend({
             initialize: function(arcs, options) {
-                this._arcs    = arcs;
-                this._running = false;
-                this._rafId   = null;
-                this._t       = 0;
-                this._pulse   = 0;
+                this._arcs = arcs; this._running = false;
+                this._rafId = null; this._t = 0; this._pulse = 0;
                 L.setOptions(this, options);
             },
 
             onAdd: function(map) {
                 this._map = map;
-
-                // Attach canvas directly to the map container, NOT overlayPane
                 this._canvas = document.createElement('canvas');
                 this._canvas.className = 'migration-canvas';
-                this._canvas.style.position      = 'absolute';
-                this._canvas.style.top           = '0';
-                this._canvas.style.left          = '0';
-                this._canvas.style.pointerEvents = 'none';
-                this._canvas.style.zIndex        = '450';
+                this._canvas.style.position = 'absolute'; this._canvas.style.top = '0';
+                this._canvas.style.left = '0'; this._canvas.style.pointerEvents = 'none';
+                this._canvas.style.zIndex = '450';
                 map.getContainer().appendChild(this._canvas);
-
-                this._resize();
-                map.on('resize', this._resize, this);
-
-                // Hover tooltip
+                this._resize(); map.on('resize', this._resize, this);
                 this._tooltip = document.createElement('div');
-                this._tooltip.className        = 'migration-hover-tooltip';
-                this._tooltip.style.display    = 'none';
-                this._tooltip.style.position   = 'fixed';
+                this._tooltip.className = 'migration-hover-tooltip';
+                this._tooltip.style.display = 'none'; this._tooltip.style.position = 'fixed';
                 document.body.appendChild(this._tooltip);
-
                 this._onMouseMove = this._handleMouseMove.bind(this);
                 map.getContainer().addEventListener('mousemove', this._onMouseMove);
-
                 this._startAnimation();
             },
 
@@ -537,13 +461,9 @@
 
             _resize: function() {
                 var size = this._map.getSize();
-                this._canvas.width  = size.x;
-                this._canvas.height = size.y;
+                this._canvas.width = size.x; this._canvas.height = size.y;
             },
 
-            // Use latLngToContainerPoint — this always returns the correct pixel
-            // position relative to the map container, regardless of zoom level or
-            // any CSS transforms applied to inner panes.
             _project: function(latlng) {
                 return this._map.latLngToContainerPoint(L.latLng(latlng[0], latlng[1]));
             },
@@ -566,282 +486,221 @@
             _stopAnimation: function() {
                 this._running = false;
                 if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null; }
-                if (this._canvas) {
-                    this._canvas.getContext('2d').clearRect(0, 0, this._canvas.width, this._canvas.height);
-                }
+                if (this._canvas) this._canvas.getContext('2d').clearRect(0, 0, this._canvas.width, this._canvas.height);
             },
 
             _draw: function() {
-                var ctx  = this._canvas.getContext('2d');
+                var ctx = this._canvas.getContext('2d');
                 var self = this;
                 ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-                // Track which target labels have already been drawn this frame
-                var drawnToLabels = {};
-
                 this._arcs.forEach(function(arc) {
-                    var p0  = self._project(arc.from);
-                    var p1  = self._project(arc.to);
-                    var mx  = (p0.x + p1.x) / 2;
-                    var my  = (p0.y + p1.y) / 2;
-                    var dx  = p1.x - p0.x;
-                    var dy  = p1.y - p0.y;
-                    var len = Math.sqrt(dx*dx + dy*dy);
+                    var p0 = self._project(arc.from), p1 = self._project(arc.to);
+                    var mx = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
+                    var dx = p1.x-p0.x, dy = p1.y-p0.y;
+                    var len = Math.sqrt(dx*dx+dy*dy);
                     if (len < 1) return;
-                    var lift = len * 0.35;
-                    var cx = mx - (dy / len) * lift;
-                    var cy = my + (dx / len) * lift;
+                    var lift = len*0.35;
+                    var cx = mx-(dy/len)*lift, cy = my+(dx/len)*lift;
 
                     // Static arc
-                    ctx.beginPath();
-                    ctx.moveTo(p0.x, p0.y);
-                    ctx.quadraticCurveTo(cx, cy, p1.x, p1.y);
-                    ctx.strokeStyle = 'rgba(26,111,196,0.45)';
-                    ctx.lineWidth   = 1.5;
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(p0.x,p0.y);
+                    ctx.quadraticCurveTo(cx,cy,p1.x,p1.y);
+                    ctx.strokeStyle='rgba(26,111,196,0.45)'; ctx.lineWidth=1.5; ctx.stroke();
 
-                    // Pulsing ring at source
-                    var pr = 4 + self._pulse * 14;
-                    ctx.beginPath();
-                    ctx.arc(p0.x, p0.y, pr, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(26,111,196,' + ((1 - self._pulse) * 0.8) + ')';
-                    ctx.lineWidth   = 2;
-                    ctx.stroke();
+                    // Pulsing ring
+                    var pr = 4+self._pulse*14;
+                    ctx.beginPath(); ctx.arc(p0.x,p0.y,pr,0,Math.PI*2);
+                    ctx.strokeStyle='rgba(26,111,196,'+((1-self._pulse)*0.8)+')';
+                    ctx.lineWidth=2; ctx.stroke();
 
-                    // Solid dot at source
-                    ctx.beginPath();
-                    ctx.arc(p0.x, p0.y, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = '#1a6fc4';
-                    ctx.fill();
+                    // Source dot
+                    ctx.beginPath(); ctx.arc(p0.x,p0.y,4,0,Math.PI*2);
+                    ctx.fillStyle='#1a6fc4'; ctx.fill();
 
                     // Travelling dot
-                    var t  = self._t, u = 1 - t;
-                    var tx = u*u*p0.x + 2*u*t*cx + t*t*p1.x;
-                    var ty = u*u*p0.y + 2*u*t*cy + t*t*p1.y;
-                    var t2 = Math.max(0, t - 0.07), u2 = 1 - t2;
-                    var tx2 = u2*u2*p0.x + 2*u2*t2*cx + t2*t2*p1.x;
-                    var ty2 = u2*u2*p0.y + 2*u2*t2*cy + t2*t2*p1.y;
+                    var t=self._t, u=1-t;
+                    var tx=u*u*p0.x+2*u*t*cx+t*t*p1.x, ty=u*u*p0.y+2*u*t*cy+t*t*p1.y;
+                    var t2=Math.max(0,t-0.07), u2=1-t2;
+                    var tx2=u2*u2*p0.x+2*u2*t2*cx+t2*t2*p1.x, ty2=u2*u2*p0.y+2*u2*t2*cy+t2*t2*p1.y;
 
-                    ctx.beginPath();
-                    ctx.moveTo(tx2, ty2);
-                    ctx.lineTo(tx, ty);
-                    ctx.strokeStyle = 'rgba(86,180,211,0.6)';
-                    ctx.lineWidth   = 3;
-                    ctx.lineCap     = 'round';
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(tx2,ty2); ctx.lineTo(tx,ty);
+                    ctx.strokeStyle='rgba(86,180,211,0.6)'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.stroke();
 
-                    ctx.beginPath();
-                    ctx.arc(tx, ty, 4, 0, Math.PI * 2);
-                    ctx.fillStyle   = '#56b4d3';
-                    ctx.shadowBlur  = 8;
-                    ctx.shadowColor = '#56b4d3';
-                    ctx.fill();
-                    ctx.shadowBlur  = 0;
+                    ctx.beginPath(); ctx.arc(tx,ty,4,0,Math.PI*2);
+                    ctx.fillStyle='#56b4d3'; ctx.shadowBlur=8; ctx.shadowColor='#56b4d3';
+                    ctx.fill(); ctx.shadowBlur=0;
 
-                    // Labels — from_label per arc, to_label only drawn once per unique target
-                    if (arc.label) {
-                        ctx.font      = 'bold 11px sans-serif';
-                        ctx.fillStyle = '#333';
-                        if (arc.from_label) {
-                            ctx.fillText(arc.from_label, p0.x + 8, p0.y - 8);
-                        }
-                        if (arc.to_label && !drawnToLabels[arc.to_label]) {
-                            ctx.fillText(arc.to_label, p1.x + 8, p1.y - 8);
-                            drawnToLabels[arc.to_label] = true;
-                        }
+                    // from_label only — Studios building label removed from canvas
+                    if (arc.label && arc.from_label) {
+                        ctx.font='bold 11px sans-serif'; ctx.fillStyle='#333';
+                        ctx.fillText(arc.from_label, p0.x+8, p0.y-8);
                     }
                 });
             },
 
             _handleMouseMove: function(e) {
-                var rect   = this._map.getContainer().getBoundingClientRect();
-                var mouseX = e.clientX - rect.left;
-                var mouseY = e.clientY - rect.top;
-                var HIT    = 6;
-                var hit    = null;
+                var rect = this._map.getContainer().getBoundingClientRect();
+                var mouseX = e.clientX-rect.left, mouseY = e.clientY-rect.top;
+                var HIT = 6, hit = null;
 
                 for (var i = 0; i < this._arcs.length; i++) {
                     var arc = this._arcs[i];
-                    var p0  = this._project(arc.from);
-                    var p1  = this._project(arc.to);
-
-                    // Source dot hit
-                    var dx = mouseX - p0.x, dy = mouseY - p0.y;
-                    if (Math.sqrt(dx*dx + dy*dy) < HIT + 6) { hit = arc.from_label || null; break; }
-
-                    // Curve hit — sample 60 points
-                    var mx  = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
-                    var adx = p1.x-p0.x,  ady = p1.y-p0.y;
-                    var len = Math.sqrt(adx*adx + ady*ady);
-                    if (len < 1) continue;
-                    var cx = mx - (ady/len)*len*0.35, cy = my + (adx/len)*len*0.35;
-                    for (var s = 0; s <= 60; s++) {
-                        var tt = s/60, uu = 1-tt;
-                        var bx = uu*uu*p0.x + 2*uu*tt*cx + tt*tt*p1.x;
-                        var by = uu*uu*p0.y + 2*uu*tt*cy + tt*tt*p1.y;
-                        if (Math.sqrt((mouseX-bx)*(mouseX-bx)+(mouseY-by)*(mouseY-by)) < HIT) {
-                            hit = arc.from_label || null; break;
+                    var p0 = this._project(arc.from), p1 = this._project(arc.to);
+                    var dx = mouseX-p0.x, dy = mouseY-p0.y;
+                    if (Math.sqrt(dx*dx+dy*dy) < HIT+6) { hit = arc.from_label||null; break; }
+                    var mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
+                    var adx=p1.x-p0.x, ady=p1.y-p0.y;
+                    var len=Math.sqrt(adx*adx+ady*ady);
+                    if (len<1) continue;
+                    var cx=mx-(ady/len)*len*0.35, cy=my+(adx/len)*len*0.35;
+                    for (var s=0; s<=60; s++) {
+                        var tt=s/60, uu=1-tt;
+                        var bx=uu*uu*p0.x+2*uu*tt*cx+tt*tt*p1.x;
+                        var by=uu*uu*p0.y+2*uu*tt*cy+tt*tt*p1.y;
+                        if (Math.sqrt((mouseX-bx)*(mouseX-bx)+(mouseY-by)*(mouseY-by))<HIT) {
+                            hit=arc.from_label||null; break;
                         }
                     }
                     if (hit) break;
                 }
 
                 if (hit) {
-                    this._tooltip.textContent  = hit;
-                    this._tooltip.style.display = 'block';
-                    this._tooltip.style.left    = (e.clientX + 14) + 'px';
-                    this._tooltip.style.top     = (e.clientY - 10) + 'px';
-                    this._map.getContainer().style.cursor = 'pointer';
+                    this._tooltip.textContent=hit; this._tooltip.style.display='block';
+                    this._tooltip.style.left=(e.clientX+14)+'px'; this._tooltip.style.top=(e.clientY-10)+'px';
+                    this._map.getContainer().style.cursor='pointer';
                 } else {
-                    this._tooltip.style.display = 'none';
-                    this._map.getContainer().style.cursor = '';
+                    this._tooltip.style.display='none'; this._map.getContainer().style.cursor='';
                 }
             }
         });
 
-        // ── Migration layers ───────────────────────────────────────────────────
+        // ── 7. Migration data & layer instances ────────────────────────────────
         var STUDIOS = [57.70988, 11.93289];
-        var capoeiraArcs = [
-            { from: [60.1699, 24.9384],  from_label: 'Finland',        to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [59.4370, 24.7536],  from_label: 'Estonia',        to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [54.6872, 25.2797],  from_label: 'Lithuania',      to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [35.8997, 14.5147],  from_label: 'Malta',          to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [51.5074, -0.1278],  from_label: 'England',        to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [38.8951, -77.0369], from_label: 'USA',            to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [52.2297, 21.0122],  from_label: 'Poland',         to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [50.0755, 14.4378],  from_label: 'Czech Republic', to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [48.2082, 16.3738],  from_label: 'Austria',        to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [4.7110, -74.0721],  from_label: 'Colombia',       to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [40.4168, -3.7038],  from_label: 'Spain',          to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [41.9028, 12.4964],  from_label: 'Italy',          to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [49.6117, 6.1319],   from_label: 'Luxembourg',     to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [52.5200, 13.4050],  from_label: 'Germany',        to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [38.7169, -9.1395],  from_label: 'Portugal',       to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [52.3676, 4.9041],   from_label: 'Netherlands',    to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [48.8566, 2.3522],   from_label: 'France',         to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [50.8503, 4.3517],   from_label: 'Belgium',        to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [-15.7801, -47.9292],from_label: 'Brazil',         to: STUDIOS, to_label: 'Studios building', label: true }
-        ];
 
+        var capoeiraArcs = [
+            { from:[60.1699,24.9384],  from_label:'Finland',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[59.4370,24.7536],  from_label:'Estonia',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[54.6872,25.2797],  from_label:'Lithuania',      to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[35.8997,14.5147],  from_label:'Malta',          to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[51.5074,-0.1278],  from_label:'England',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[38.8951,-77.0369], from_label:'USA',            to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[52.2297,21.0122],  from_label:'Poland',         to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[50.0755,14.4378],  from_label:'Czech Republic', to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[48.2082,16.3738],  from_label:'Austria',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[4.7110,-74.0721],  from_label:'Colombia',       to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[40.4168,-3.7038],  from_label:'Spain',          to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[41.9028,12.4964],  from_label:'Italy',          to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[49.6117,6.1319],   from_label:'Luxembourg',     to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[52.5200,13.4050],  from_label:'Germany',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[38.7169,-9.1395],  from_label:'Portugal',       to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[52.3676,4.9041],   from_label:'Netherlands',    to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[48.8566,2.3522],   from_label:'France',         to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[50.8503,4.3517],   from_label:'Belgium',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[-15.7801,-47.9292],from_label:'Brazil',         to:STUDIOS, to_label:'Studios building', label:true }
+        ];
         var capoeiraLayer = new MigrationLayer(capoeiraArcs);
         capoeiraLayer.addTo(map);
 
-        // ── Concert Large MigrationLayer ───────────────────────────────────────
         var concertLargeArcs = [
-            { from: [59.9139, 10.7522],  from_label: 'Norway',                  to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [58.2528, 13.0596],  from_label: 'Region Västra Götaland',  to: STUDIOS, to_label: 'Studios building', label: true }
+            { from:[59.9139,10.7522], from_label:'Norway',                 to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[58.2528,13.0596], from_label:'Region Västra Götaland', to:STUDIOS, to_label:'Studios building', label:true }
         ];
-
         var concertLargeLayer = new MigrationLayer(concertLargeArcs);
         concertLargeLayer.addTo(map);
 
-        // ── #2 Concert Large ───────────────────────────────────────────────────
         var concertLarge2Arcs = [
-            { from: [58.2528, 13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true }
+            { from:[58.2528,13.0596], from_label:'Region Västra Götaland', to:STUDIOS, to_label:'Studios building', label:true }
         ];
         var concertLarge2Layer = new MigrationLayer(concertLarge2Arcs);
         concertLarge2Layer.addTo(map);
 
-        // ── #3 Concert Medium ──────────────────────────────────────────────────
+        // FIX: was missing new MigrationLayer() + addTo()
         var concertMedium3Arcs = [
-            { from: [59.9139, 10.7522],  from_label: 'Norway',               to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [55.6761,  12.5683], from_label: 'Denmark',              to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [58.2528,  13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true }
+            { from:[59.9139,10.7522], from_label:'Norway',                 to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[55.6761,12.5683], from_label:'Denmark',                to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[58.2528,13.0596], from_label:'Region Västra Götaland', to:STUDIOS, to_label:'Studios building', label:true }
         ];
+        var concertMedium3Layer = new MigrationLayer(concertMedium3Arcs);
+        concertMedium3Layer.addTo(map);
 
+        // FIX: was missing new MigrationLayer() + addTo()
         var fairLarge4Arcs = [
-            { from: [58.2528, 13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [56.6745, 12.8578], from_label: 'Halland',                to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [55.9903, 13.5958], from_label: 'Skåne',                  to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [57.0000, 14.8333], from_label: 'Småland',                to: STUDIOS, to_label: 'Studios building', label: true }
+            { from:[58.2528,13.0596], from_label:'Region Västra Götaland', to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[56.6745,12.8578], from_label:'Halland',                to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[55.9903,13.5958], from_label:'Skåne',                  to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[57.0000,14.8333], from_label:'Småland',                to:STUDIOS, to_label:'Studios building', label:true }
         ];
+        var fairLarge4Layer = new MigrationLayer(fairLarge4Arcs);
+        fairLarge4Layer.addTo(map);
 
         var concertMedium5Arcs = [
-            { from: [58.2528, 13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [55.9903, 13.5958], from_label: 'Skåne',                  to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [57.0000, 14.8333], from_label: 'Småland',                to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [59.3293, 18.0686], from_label: 'Stockholm',              to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [58.4108, 15.6214], from_label: 'Östergötland',           to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [66.8309, 20.3963], from_label: 'Norrbotten',             to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [63.1282, 14.6403], from_label: 'Jämtland',               to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [59.9139, 10.7522], from_label: 'Norway',                 to: STUDIOS, to_label: 'Studios building', label: true },
-            { from: [52.5200, 13.4050], from_label: 'Germany',                to: STUDIOS, to_label: 'Studios building', label: true }
+            { from:[58.2528,13.0596], from_label:'Region Västra Götaland', to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[56.6745,12.8578], from_label:'Halland',                to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[55.9903,13.5958], from_label:'Skåne',                  to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[57.0000,14.8333], from_label:'Småland',                to:STUDIOS, to_label:'Studios building', label:true }
         ];
         var concertMedium5Layer = new MigrationLayer(concertMedium5Arcs);
         concertMedium5Layer.addTo(map);
 
-        // ── Visitors toggle ────────────────────────────────────────────────────
-        var capoeiraVisible       = true;
-        var concertLargeVisible   = true;
-        var concertLarge2Visible  = true;
-        var concertMedium3Visible = true;
-        var fairLarge4Visible     = true;
-        var concertMedium5Visible = true;
+        // ── 8. Visitors toggle ─────────────────────────────────────────────────
+        var capoeiraVisible=true, concertLargeVisible=true, concertLarge2Visible=true;
+        var concertMedium3Visible=true, fairLarge4Visible=true, concertMedium5Visible=true;
 
-        var capoeiraBtn         = document.getElementById('capoeira-toggle-btn');
-        var concertLargeBtn     = document.getElementById('concert-large-toggle-btn');
-        var concertLarge2Btn    = document.getElementById('concert-large2-toggle-btn');
-        var concertMedium3Btn   = document.getElementById('concert-medium3-toggle-btn');
-        var fairLarge4Btn       = document.getElementById('fair-large4-toggle-btn');
-        var concertMedium5Btn   = document.getElementById('concert-medium5-toggle-btn');
-        var capoeiraLbl         = document.getElementById('capoeira-label');
-        var concertLargeLbl     = document.getElementById('concert-large-label');
-        var concertLarge2Lbl    = document.getElementById('concert-large2-label');
-        var concertMedium3Lbl   = document.getElementById('concert-medium3-label');
-        var fairLarge4Lbl       = document.getElementById('fair-large4-label');
-        var concertMedium5Lbl   = document.getElementById('concert-medium5-label');
-        var visitorsHeader      = document.getElementById('visitors-header');
-        var visitorsCb          = document.getElementById('visitors-checkbox');
+        var capoeiraBtn       = document.getElementById('capoeira-toggle-btn');
+        var concertLargeBtn   = document.getElementById('concert-large-toggle-btn');
+        var concertLarge2Btn  = document.getElementById('concert-large2-toggle-btn');
+        var concertMedium3Btn = document.getElementById('concert-medium3-toggle-btn');
+        var fairLarge4Btn     = document.getElementById('fair-large4-toggle-btn');
+        var concertMedium5Btn = document.getElementById('concert-medium5-toggle-btn');
+        var capoeiraLbl       = document.getElementById('capoeira-label');
+        var concertLargeLbl   = document.getElementById('concert-large-label');
+        var concertLarge2Lbl  = document.getElementById('concert-large2-label');
+        var concertMedium3Lbl = document.getElementById('concert-medium3-label');
+        var fairLarge4Lbl     = document.getElementById('fair-large4-label');
+        var concertMedium5Lbl = document.getElementById('concert-medium5-label');
+        var visitorsHeader    = document.getElementById('visitors-header');
+        var visitorsCb        = document.getElementById('visitors-checkbox');
 
-        // Helper to wire up each individual toggle button
-        function makeToggle(btn, getVisible, setVisible, layer, lbl) {
+        function makeToggle(btn, getV, setV, layer, lbl) {
             btn.addEventListener('click', function() {
-                var v = !getVisible();
-                setVisible(v);
+                var v = !getV(); setV(v);
                 if (v) {
-                    layer.addTo(map);
-                    btn.style.background  = '#1a6fc4';
-                    btn.style.borderColor = '#aaa';
+                    layer.addTo(map); btn.style.background='#1a6fc4'; btn.style.borderColor='#aaa';
                     lbl.classList.remove('disabled');
                 } else {
-                    map.removeLayer(layer);
-                    btn.style.background  = '#ddd';
-                    btn.style.borderColor = '#bbb';
+                    map.removeLayer(layer); btn.style.background='#ddd'; btn.style.borderColor='#bbb';
                     lbl.classList.add('disabled');
                 }
             });
         }
 
-        makeToggle(capoeiraBtn,       function(){ return capoeiraVisible; },       function(v){ capoeiraVisible = v; },       capoeiraLayer,       capoeiraLbl);
-        makeToggle(concertLargeBtn,   function(){ return concertLargeVisible; },   function(v){ concertLargeVisible = v; },   concertLargeLayer,   concertLargeLbl);
-        makeToggle(concertLarge2Btn,  function(){ return concertLarge2Visible; },  function(v){ concertLarge2Visible = v; },  concertLarge2Layer,  concertLarge2Lbl);
-        makeToggle(concertMedium3Btn, function(){ return concertMedium3Visible; }, function(v){ concertMedium3Visible = v; }, concertMedium3Layer, concertMedium3Lbl);
-        makeToggle(fairLarge4Btn,     function(){ return fairLarge4Visible; },     function(v){ fairLarge4Visible = v; },     fairLarge4Layer,     fairLarge4Lbl);
-        makeToggle(concertMedium5Btn, function(){ return concertMedium5Visible; }, function(v){ concertMedium5Visible = v; }, concertMedium5Layer, concertMedium5Lbl);
+        makeToggle(capoeiraBtn,       function(){return capoeiraVisible;},       function(v){capoeiraVisible=v;},       capoeiraLayer,       capoeiraLbl);
+        makeToggle(concertLargeBtn,   function(){return concertLargeVisible;},   function(v){concertLargeVisible=v;},   concertLargeLayer,   concertLargeLbl);
+        makeToggle(concertLarge2Btn,  function(){return concertLarge2Visible;},  function(v){concertLarge2Visible=v;},  concertLarge2Layer,  concertLarge2Lbl);
+        makeToggle(concertMedium3Btn, function(){return concertMedium3Visible;}, function(v){concertMedium3Visible=v;}, concertMedium3Layer, concertMedium3Lbl);
+        makeToggle(fairLarge4Btn,     function(){return fairLarge4Visible;},     function(v){fairLarge4Visible=v;},     fairLarge4Layer,     fairLarge4Lbl);
+        makeToggle(concertMedium5Btn, function(){return concertMedium5Visible;}, function(v){concertMedium5Visible=v;}, concertMedium5Layer, concertMedium5Lbl);
 
         var allLayers = [
-            { layer: capoeiraLayer,       btn: capoeiraBtn,       lbl: capoeiraLbl,       setV: function(v){ capoeiraVisible = v; } },
-            { layer: concertLargeLayer,   btn: concertLargeBtn,   lbl: concertLargeLbl,   setV: function(v){ concertLargeVisible = v; } },
-            { layer: concertLarge2Layer,  btn: concertLarge2Btn,  lbl: concertLarge2Lbl,  setV: function(v){ concertLarge2Visible = v; } },
-            { layer: concertMedium3Layer, btn: concertMedium3Btn, lbl: concertMedium3Lbl, setV: function(v){ concertMedium3Visible = v; } },
-            { layer: fairLarge4Layer,     btn: fairLarge4Btn,     lbl: fairLarge4Lbl,     setV: function(v){ fairLarge4Visible = v; } },
-            { layer: concertMedium5Layer, btn: concertMedium5Btn, lbl: concertMedium5Lbl, setV: function(v){ concertMedium5Visible = v; } }
+            {layer:capoeiraLayer,       btn:capoeiraBtn,       lbl:capoeiraLbl,       setV:function(v){capoeiraVisible=v;}},
+            {layer:concertLargeLayer,   btn:concertLargeBtn,   lbl:concertLargeLbl,   setV:function(v){concertLargeVisible=v;}},
+            {layer:concertLarge2Layer,  btn:concertLarge2Btn,  lbl:concertLarge2Lbl,  setV:function(v){concertLarge2Visible=v;}},
+            {layer:concertMedium3Layer, btn:concertMedium3Btn, lbl:concertMedium3Lbl, setV:function(v){concertMedium3Visible=v;}},
+            {layer:fairLarge4Layer,     btn:fairLarge4Btn,     lbl:fairLarge4Lbl,     setV:function(v){fairLarge4Visible=v;}},
+            {layer:concertMedium5Layer, btn:concertMedium5Btn, lbl:concertMedium5Lbl, setV:function(v){concertMedium5Visible=v;}}
         ];
 
         function setAllVisible(visible) {
-            capoeiraVisible = concertLargeVisible = concertLarge2Visible =
-            concertMedium3Visible = fairLarge4Visible = concertMedium5Visible = visible;
+            capoeiraVisible=concertLargeVisible=concertLarge2Visible=
+            concertMedium3Visible=fairLarge4Visible=concertMedium5Visible=visible;
             allLayers.forEach(function(e) {
                 e.setV(visible);
                 if (visible) {
-                    e.layer.addTo(map);
-                    e.btn.style.background  = '#1a6fc4';
-                    e.btn.style.borderColor = '#aaa';
+                    e.layer.addTo(map); e.btn.style.background='#1a6fc4'; e.btn.style.borderColor='#aaa';
                     e.lbl.classList.remove('disabled');
                 } else {
-                    map.removeLayer(e.layer);
-                    e.btn.style.background  = '#ddd';
-                    e.btn.style.borderColor = '#bbb';
+                    map.removeLayer(e.layer); e.btn.style.background='#ddd'; e.btn.style.borderColor='#bbb';
                     e.lbl.classList.add('disabled');
                 }
             });
@@ -850,113 +709,101 @@
         }
 
         visitorsHeader.addEventListener('click', function(e) {
-            if (e.target.id === 'visitors-checkbox') return;
-            var anyOn = capoeiraVisible || concertLargeVisible || concertLarge2Visible ||
-                        concertMedium3Visible || fairLarge4Visible || concertMedium5Visible;
+            if (e.target.id==='visitors-checkbox') return;
+            var anyOn = capoeiraVisible||concertLargeVisible||concertLarge2Visible||
+                        concertMedium3Visible||fairLarge4Visible||concertMedium5Visible;
             setAllVisible(!anyOn);
         });
         visitorsCb.addEventListener('change', function() { setAllVisible(this.checked); });
 
-        // ── 7. Activity widget ─────────────────────────────────────────────────
+        // ── 9. Activity widget ─────────────────────────────────────────────────
         document.getElementById('widget-header').addEventListener('click', function() {
-            var body      = document.getElementById('widget-body');
-            var widget    = document.getElementById('activity-widget');
-            var toggle    = document.getElementById('widget-toggle');
-            var collapsed = body.classList.toggle('hidden');
-            widget.classList.toggle('collapsed', collapsed);
-            toggle.textContent = collapsed ? '▼' : '▲';
+            var body=document.getElementById('widget-body'), widget=document.getElementById('activity-widget');
+            var toggle=document.getElementById('widget-toggle');
+            var collapsed=body.classList.toggle('hidden');
+            widget.classList.toggle('collapsed',collapsed); toggle.textContent=collapsed?'▼':'▲';
         });
 
-        // ── 8. Cultural Sites toggle ───────────────────────────────────────────
-        var culturalSitesVisible = true;
+        // ── 10. Cultural Sites toggle ──────────────────────────────────────────
+        var culturalCollapsed=false, relationscapeCollapsed=false, visitorsCollapsed=false;
+        var culturalSitesVisible=true;
+
         document.getElementById('cultural-sites-header').addEventListener('click', function(e) {
-            if (e.target.id === 'cultural-sites-checkbox') return;
-            var cb = document.getElementById('cultural-sites-checkbox');
-            cb.checked = !cb.checked; toggleCulturalSites(cb.checked);
+            if (e.target.id==='cultural-sites-checkbox') return;
+            var cb=document.getElementById('cultural-sites-checkbox');
+            cb.checked=!cb.checked; toggleCulturalSites(cb.checked);
         });
         document.getElementById('cultural-sites-checkbox').addEventListener('change', function() {
             toggleCulturalSites(this.checked);
         });
         function toggleCulturalSites(visible) {
-            culturalSitesVisible = visible;
-            document.getElementById('cultural-sites-header').classList.toggle('disabled', !visible);
-            // Only collapse/expand body due to visibility if not manually collapsed
-            if (!culturalCollapsed) {
-                document.getElementById('cultural-sites-body').classList.toggle('collapsed', !visible);
-            }
+            culturalSitesVisible=visible;
+            document.getElementById('cultural-sites-header').classList.toggle('disabled',!visible);
+            if (!culturalCollapsed)
+                document.getElementById('cultural-sites-body').classList.toggle('collapsed',!visible);
             Object.values(categoryLayers).forEach(function(ls) {
-                ls.forEach(function(l) { l.setStyle({ fillOpacity: visible?0.9:0, opacity: visible?1:0 }); });
+                ls.forEach(function(l){ l.setStyle({fillOpacity:visible?0.9:0, opacity:visible?1:0}); });
             });
-            document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(i) {
+            document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(i){
                 if (visible) i.classList.remove('disabled');
             });
             hiddenCategories.clear();
         }
         document.querySelectorAll('#cultural-sites-group .legend-item').forEach(function(item) {
             item.addEventListener('click', function() {
-                var cat = this.dataset.category, layers = categoryLayers[cat];
+                var cat=this.dataset.category, layers=categoryLayers[cat];
                 if (hiddenCategories.has(cat)) {
                     hiddenCategories.delete(cat); this.classList.remove('disabled');
-                    if (layers) layers.forEach(function(l){ l.setStyle({ fillOpacity:0.9, opacity:1 }); });
+                    if (layers) layers.forEach(function(l){l.setStyle({fillOpacity:0.9,opacity:1});});
                 } else {
                     hiddenCategories.add(cat); this.classList.add('disabled');
-                    if (layers) layers.forEach(function(l){ l.setStyle({ fillOpacity:0, opacity:0 }); });
+                    if (layers) layers.forEach(function(l){l.setStyle({fillOpacity:0,opacity:0});});
                 }
             });
         });
 
-        var visitorsCollapsed = false;
-
-        document.getElementById('visitors-arrow').addEventListener('click', function(e) {
-            e.stopPropagation();
-            visitorsCollapsed = !visitorsCollapsed;
-            document.getElementById('visitors-body').classList.toggle('collapsed', visitorsCollapsed);
-            this.classList.toggle('collapsed', visitorsCollapsed);
-        });
-
-        // ── Independent collapse (arrow) — separate from visibility toggle ──────
-        var culturalCollapsed   = false;
-        var relationscapeCollapsed = false;
-
+        // ── 11. Collapse arrows ────────────────────────────────────────────────
         document.getElementById('cultural-sites-arrow').addEventListener('click', function(e) {
-            e.stopPropagation();
-            culturalCollapsed = !culturalCollapsed;
-            document.getElementById('cultural-sites-body').classList.toggle('collapsed', culturalCollapsed);
-            this.classList.toggle('collapsed', culturalCollapsed);
+            e.stopPropagation(); culturalCollapsed=!culturalCollapsed;
+            document.getElementById('cultural-sites-body').classList.toggle('collapsed',culturalCollapsed);
+            this.classList.toggle('collapsed',culturalCollapsed);
         });
-
         document.getElementById('relationscape-arrow').addEventListener('click', function(e) {
-            e.stopPropagation();
-            relationscapeCollapsed = !relationscapeCollapsed;
-            document.getElementById('relationscape-body').classList.toggle('collapsed', relationscapeCollapsed);
-            this.classList.toggle('collapsed', relationscapeCollapsed);
+            e.stopPropagation(); relationscapeCollapsed=!relationscapeCollapsed;
+            document.getElementById('relationscape-body').classList.toggle('collapsed',relationscapeCollapsed);
+            this.classList.toggle('collapsed',relationscapeCollapsed);
+        });
+        document.getElementById('visitors-arrow').addEventListener('click', function(e) {
+            e.stopPropagation(); visitorsCollapsed=!visitorsCollapsed;
+            document.getElementById('visitors-body').classList.toggle('collapsed',visitorsCollapsed);
+            this.classList.toggle('collapsed',visitorsCollapsed);
         });
 
+        // ── 12. Relationscape toggle ───────────────────────────────────────────
         function toggleRelationscape(visible) {
-            document.getElementById('relationscape-header').classList.toggle('disabled', !visible);
-            if (!relationscapeCollapsed) {
-                document.getElementById('relationscape-body').classList.toggle('collapsed', !visible);
-            }
-            customMarkers.forEach(function(m) {
-                m.setStyle({ fillOpacity: visible?1:0, opacity: visible?1:0 });
+            document.getElementById('relationscape-header').classList.toggle('disabled',!visible);
+            if (!relationscapeCollapsed)
+                document.getElementById('relationscape-body').classList.toggle('collapsed',!visible);
+            customMarkers.forEach(function(m){
+                m.setStyle({fillOpacity:visible?1:0, opacity:visible?1:0});
             });
-            document.querySelectorAll('#relationscape-group .rel-item').forEach(function(i) {
-                i.classList.toggle('disabled', !visible);
+            document.querySelectorAll('#relationscape-group .rel-item').forEach(function(i){
+                i.classList.toggle('disabled',!visible);
             });
         }
         document.getElementById('relationscape-header').addEventListener('click', function(e) {
-            if (e.target.id === 'relationscape-checkbox') return;
-            var cb = document.getElementById('relationscape-checkbox');
-            cb.checked = !cb.checked; toggleRelationscape(cb.checked);
+            if (e.target.id==='relationscape-checkbox') return;
+            var cb=document.getElementById('relationscape-checkbox');
+            cb.checked=!cb.checked; toggleRelationscape(cb.checked);
         });
         document.getElementById('relationscape-checkbox').addEventListener('change', function() {
             toggleRelationscape(this.checked);
         });
         document.querySelectorAll('.rel-item').forEach(function(item) {
             item.addEventListener('click', function() {
-                var idx = parseInt(this.dataset.index);
-                var isDisabled = this.classList.toggle('disabled');
-                customMarkers[idx].setStyle({ fillOpacity: isDisabled?0:1, opacity: isDisabled?0:1 });
+                var idx=parseInt(this.dataset.index);
+                var isDisabled=this.classList.toggle('disabled');
+                customMarkers[idx].setStyle({fillOpacity:isDisabled?0:1, opacity:isDisabled?0:1});
             });
         });
 
