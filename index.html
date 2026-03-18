@@ -119,12 +119,55 @@
         }
         #migration-toggle-btn:hover { filter: brightness(0.88); }
         #migration-toggle-btn.off { background: #ddd; border-color: #bbb; }
-    </style>
+
+        /* Zoom view buttons — match Leaflet's native zoom control */
+        #zoom-extra {
+            position: absolute;
+            top: 82px;  /* 10px top + 62px zoom control height + 10px gap = left spacing */
+            left: 10px; /* matches Leaflet's default zoom control left */
+            z-index: 1000;
+        }
+        #zoom-extra .leaflet-bar {
+            margin: 0;
+        }
+        #zoom-extra a {
+            display: block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 18px;
+            color: #333;
+            background: #fff;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+            user-select: none;
+        }
+        #zoom-extra a:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+        #zoom-extra a:last-child {
+            border-bottom: none;
+            border-radius: 0 0 4px 4px;
+        }
+        #zoom-extra a:hover {
+            background: #f4f4f4;
+            color: #333;
+        }    </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="heading-widget">Gothenburg Film Studios</div>
+
+    <!-- Zoom view buttons — styled to match Leaflet's native zoom control -->
+    <div id="zoom-extra">
+        <div class="leaflet-bar leaflet-control">
+            <a id="btn-zoom-world" title="Fit all migration connections" role="button">⊕</a>
+            <a id="btn-zoom-local" title="Close-up on Lindholmen" role="button">🔍</a>
+        </div>
+    </div>
 
     <div id="activity-widget" class="collapsed">
         <div id="widget-header">
@@ -225,6 +268,30 @@
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
+
+        // ── Zoom view buttons ──────────────────────────────────────────────────
+        // Global extent: fit all capoeira source coords + Studios target
+        var STUDIOS_LL = [57.70988, 11.93289];
+        var allMigrationPoints = [
+            STUDIOS_LL,
+            [57.7059134823545, 11.935946002968043], // Backa teater
+            [60.1699, 24.9384],  [59.4370, 24.7536],  [54.6872, 25.2797],
+            [35.8997, 14.5147],  [51.5074, -0.1278],  [38.8951, -77.0369],
+            [52.2297, 21.0122],  [50.0755, 14.4378],  [48.2082, 16.3738],
+            [4.7110,  -74.0721], [40.4168, -3.7038],  [41.9028, 12.4964],
+            [49.6117, 6.1319],   [52.5200, 13.4050],  [38.7169, -9.1395],
+            [52.3676, 4.9041],   [48.8566, 2.3522],   [50.8503, 4.3517],
+            [-15.7801, -47.9292]
+        ];
+
+        document.getElementById('btn-zoom-world').addEventListener('click', function() {
+            var bounds = L.latLngBounds(allMigrationPoints);
+            map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+        });
+
+        document.getElementById('btn-zoom-local').addEventListener('click', function() {
+            map.setView([57.70979, 11.93344], 16, { animate: true });
+        });
 
         // ── 2. Colors ──────────────────────────────────────────────────────────
         const categoryColors = {
