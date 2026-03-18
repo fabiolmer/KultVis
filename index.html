@@ -67,9 +67,36 @@
         .legend-divider { border: none; border-top: 0.4px solid #ccc; margin: 10px 0; }
         .legend-group-header {
             display: flex; align-items: center; gap: 6px;
-            cursor: pointer; user-select: none; margin-bottom: 8px;
+            user-select: none; margin-bottom: 8px;
         }
         .legend-group-header.disabled h4 { opacity: 0.4; text-decoration: line-through; }
+
+        .legend-collapse-arrow {
+            margin-left: auto;
+            font-size: 10px;
+            color: #888;
+            cursor: pointer;
+            padding: 0 2px;
+            transition: transform 0.25s ease;
+            line-height: 1;
+            flex-shrink: 0;
+            display: inline-block;
+            transform: rotate(0deg);
+        }
+        .legend-collapse-arrow.collapsed { transform: rotate(90deg); }
+
+        /* Collapsible legend groups — collapses upward via transform */
+        .legend-group-body {
+            overflow: hidden;
+            transition: max-height 0.25s ease, opacity 0.2s ease;
+            max-height: 600px;
+            opacity: 1;
+            transform-origin: top;
+        }
+        .legend-group-body.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+        }
 
         .migration-hover-tooltip {
             position: fixed;
@@ -193,7 +220,9 @@
         <div id="cultural-sites-header" class="legend-group-header">
             <input type="checkbox" id="cultural-sites-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
             <h4 style="margin:0;display:inline;cursor:pointer;">Cultural Sites</h4>
+            <span class="legend-collapse-arrow" id="cultural-sites-arrow">▼</span>
         </div>
+        <div id="cultural-sites-body" class="legend-group-body">
         <div id="cultural-sites-group">
             <div class="legend-item" data-category="Museum"><div class="legend-dot" style="background:#e74c3c;"></div> Museum</div>
             <div class="legend-item" data-category="Bibliotek"><div class="legend-dot" style="background:#3498db;"></div> Bibliotek</div>
@@ -202,13 +231,15 @@
             <div class="legend-item" data-category="Kulturhus"><div class="legend-dot" style="background:#2ecc71;"></div> Kulturhus</div>
             <div class="legend-item" data-category="default"><div class="legend-dot" style="background:#95a5a6;"></div> Other</div>
         </div>
-
         <hr class="legend-divider">
+        </div>
 
         <div id="relationscape-header" class="legend-group-header">
             <input type="checkbox" id="relationscape-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
             <h4 style="margin:0;display:inline;cursor:pointer;">Relationscape Lindholmen</h4>
+            <span class="legend-collapse-arrow" id="relationscape-arrow">▼</span>
         </div>
+        <div id="relationscape-body" class="legend-group-body">
         <div id="relationscape-group" style="max-height:300px;overflow-y:auto;">
             <div style="font-size:11px;color:#555;margin-bottom:6px;">Cultural value 1 and 2</div>
             <div class="legend-item rel-item" data-index="0"><div class="legend-dot" style="background:#ff6600;"></div> Karlatornet</div>
@@ -242,19 +273,29 @@
             <div class="legend-item rel-item" data-index="28"><div class="legend-dot" style="background:#ff6600;"></div> 3</div>
             <div class="legend-item rel-item" data-index="29"><div class="legend-dot" style="background:#ff6600;"></div> 4</div>
         </div>
-
         <hr class="legend-divider">
+        </div>
 
         <div id="visitors-header" class="legend-group-header">
             <input type="checkbox" id="visitors-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
             <h4 style="margin:0;display:inline;cursor:pointer;">Visitors</h4>
+            <span class="legend-collapse-arrow" id="visitors-arrow">▼</span>
         </div>
+        <div id="visitors-body" class="legend-group-body">
         <div id="capoeira-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="capoeira-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Capoeira — 20 countries → Studios
+                Capoeira — 20 countries
             </div>
             <button id="capoeira-toggle-btn" title="Toggle Capoeira arcs" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+        </div>
+        <div id="concert-large-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
+            <div id="concert-large-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
+                <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
+                Concert Large — Norway, Västra Götaland
+            </div>
+            <button id="concert-large-toggle-btn" title="Toggle Concert Large arcs" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+        </div>
         </div>
     </div>
 
@@ -262,7 +303,11 @@
         console.log("Script starting...");
 
         // ── 1. Map ─────────────────────────────────────────────────────────────
-        var map = L.map('map').setView([57.70979, 11.93344], 16);
+        var map = L.map('map');
+        map.fitBounds([
+            [57.703700110440614, 11.930358409881592],
+            [57.71250399593388,  11.952331066131594]
+        ]);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
@@ -653,13 +698,25 @@
         var capoeiraLayer = new MigrationLayer(capoeiraArcs);
         capoeiraLayer.addTo(map);
 
-        // ── Visitors toggle ────────────────────────────────────────────────────
-        var capoeiraVisible  = true;
+        // ── Concert Large MigrationLayer ───────────────────────────────────────
+        var concertLargeArcs = [
+            { from: [59.9139, 10.7522],  from_label: 'Norway',                  to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [58.2528, 13.0596],  from_label: 'Region Västra Götaland',  to: STUDIOS, to_label: 'Studios building', label: true }
+        ];
 
-        var capoeiraBtn    = document.getElementById('capoeira-toggle-btn');
-        var capoeiraLbl    = document.getElementById('capoeira-label');
-        var visitorsHeader = document.getElementById('visitors-header');
-        var visitorsCb     = document.getElementById('visitors-checkbox');
+        var concertLargeLayer = new MigrationLayer(concertLargeArcs);
+        concertLargeLayer.addTo(map);
+
+        // ── Visitors toggle ────────────────────────────────────────────────────
+        var capoeiraVisible     = true;
+        var concertLargeVisible = true;
+
+        var capoeiraBtn         = document.getElementById('capoeira-toggle-btn');
+        var concertLargeBtn     = document.getElementById('concert-large-toggle-btn');
+        var capoeiraLbl         = document.getElementById('capoeira-label');
+        var concertLargeLbl     = document.getElementById('concert-large-label');
+        var visitorsHeader      = document.getElementById('visitors-header');
+        var visitorsCb          = document.getElementById('visitors-checkbox');
 
         capoeiraBtn.addEventListener('click', function() {
             capoeiraVisible = !capoeiraVisible;
@@ -676,20 +733,44 @@
             }
         });
 
+        concertLargeBtn.addEventListener('click', function() {
+            concertLargeVisible = !concertLargeVisible;
+            if (concertLargeVisible) {
+                concertLargeLayer.addTo(map);
+                concertLargeBtn.style.background  = '#1a6fc4';
+                concertLargeBtn.style.borderColor = '#aaa';
+                concertLargeLbl.classList.remove('disabled');
+            } else {
+                map.removeLayer(concertLargeLayer);
+                concertLargeBtn.style.background  = '#ddd';
+                concertLargeBtn.style.borderColor = '#bbb';
+                concertLargeLbl.classList.add('disabled');
+            }
+        });
+
         function setAllVisible(visible) {
-            capoeiraVisible = visible;
+            capoeiraVisible     = visible;
+            concertLargeVisible = visible;
             if (visible) {
                 capoeiraLayer.addTo(map);
-                capoeiraBtn.style.background  = '#1a6fc4';
-                capoeiraBtn.style.borderColor = '#aaa';
+                concertLargeLayer.addTo(map);
+                capoeiraBtn.style.background      = '#1a6fc4';
+                capoeiraBtn.style.borderColor     = '#aaa';
+                concertLargeBtn.style.background  = '#1a6fc4';
+                concertLargeBtn.style.borderColor = '#aaa';
                 capoeiraLbl.classList.remove('disabled');
+                concertLargeLbl.classList.remove('disabled');
                 visitorsHeader.classList.remove('disabled');
                 visitorsCb.checked = true;
             } else {
                 map.removeLayer(capoeiraLayer);
-                capoeiraBtn.style.background  = '#ddd';
-                capoeiraBtn.style.borderColor = '#bbb';
+                map.removeLayer(concertLargeLayer);
+                capoeiraBtn.style.background      = '#ddd';
+                capoeiraBtn.style.borderColor     = '#bbb';
+                concertLargeBtn.style.background  = '#ddd';
+                concertLargeBtn.style.borderColor = '#bbb';
                 capoeiraLbl.classList.add('disabled');
+                concertLargeLbl.classList.add('disabled');
                 visitorsHeader.classList.add('disabled');
                 visitorsCb.checked = false;
             }
@@ -697,7 +778,7 @@
 
         visitorsHeader.addEventListener('click', function(e) {
             if (e.target.id === 'visitors-checkbox') return;
-            setAllVisible(!(migrationVisible && capoeiraVisible));
+            setAllVisible(!(capoeiraVisible && concertLargeVisible));
         });
         visitorsCb.addEventListener('change', function() { setAllVisible(this.checked); });
 
@@ -724,6 +805,10 @@
         function toggleCulturalSites(visible) {
             culturalSitesVisible = visible;
             document.getElementById('cultural-sites-header').classList.toggle('disabled', !visible);
+            // Only collapse/expand body due to visibility if not manually collapsed
+            if (!culturalCollapsed) {
+                document.getElementById('cultural-sites-body').classList.toggle('collapsed', !visible);
+            }
             Object.values(categoryLayers).forEach(function(ls) {
                 ls.forEach(function(l) { l.setStyle({ fillOpacity: visible?0.9:0, opacity: visible?1:0 }); });
             });
@@ -745,9 +830,38 @@
             });
         });
 
-        // ── 9. Relationscape toggle ────────────────────────────────────────────
+        var visitorsCollapsed = false;
+
+        document.getElementById('visitors-arrow').addEventListener('click', function(e) {
+            e.stopPropagation();
+            visitorsCollapsed = !visitorsCollapsed;
+            document.getElementById('visitors-body').classList.toggle('collapsed', visitorsCollapsed);
+            this.classList.toggle('collapsed', visitorsCollapsed);
+        });
+
+        // ── Independent collapse (arrow) — separate from visibility toggle ──────
+        var culturalCollapsed   = false;
+        var relationscapeCollapsed = false;
+
+        document.getElementById('cultural-sites-arrow').addEventListener('click', function(e) {
+            e.stopPropagation();
+            culturalCollapsed = !culturalCollapsed;
+            document.getElementById('cultural-sites-body').classList.toggle('collapsed', culturalCollapsed);
+            this.classList.toggle('collapsed', culturalCollapsed);
+        });
+
+        document.getElementById('relationscape-arrow').addEventListener('click', function(e) {
+            e.stopPropagation();
+            relationscapeCollapsed = !relationscapeCollapsed;
+            document.getElementById('relationscape-body').classList.toggle('collapsed', relationscapeCollapsed);
+            this.classList.toggle('collapsed', relationscapeCollapsed);
+        });
+
         function toggleRelationscape(visible) {
             document.getElementById('relationscape-header').classList.toggle('disabled', !visible);
+            if (!relationscapeCollapsed) {
+                document.getElementById('relationscape-body').classList.toggle('collapsed', !visible);
+            }
             customMarkers.forEach(function(m) {
                 m.setStyle({ fillOpacity: visible?1:0, opacity: visible?1:0 });
             });
