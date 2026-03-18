@@ -288,7 +288,10 @@
         });
 
         document.getElementById('btn-zoom-local').addEventListener('click', function() {
-            map.setView([57.70979, 11.93344], 16, { animate: true });
+            map.fitBounds([
+                [57.695, 11.905],  // SW — Sannegården / Pustervik
+                [57.725, 11.975]   // NE — Lundbyleden / Lindholmshamnen
+            ], { animate: true });
         });
 
         // ── 2. Colors ──────────────────────────────────────────────────────────
