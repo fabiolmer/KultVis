@@ -70,9 +70,34 @@
             cursor: pointer; user-select: none; margin-bottom: 8px;
         }
         .legend-group-header.disabled h4 { opacity: 0.4; text-decoration: line-through; }
+
+        /* Migration arc row */
         .legend-arc-line {
             width: 22px; height: 3px; flex-shrink: 0; margin-right: 8px;
             background: linear-gradient(90deg, #e74c3c, #ff6600); border-radius: 2px;
+        }
+        #connections-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; margin-bottom: 0;
+        }
+        #connections-label {
+            display: flex; align-items: center; gap: 0;
+            font-size: 13px; opacity: 1; transition: opacity 0.2s;
+        }
+        #connections-label.disabled { opacity: 0.35; text-decoration: line-through; }
+        #migration-toggle-btn {
+            flex-shrink: 0;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 1px solid #aaa;
+            background: #e74c3c;
+            cursor: pointer;
+            padding: 0;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        #migration-toggle-btn:hover { filter: brightness(0.88); }
+        #migration-toggle-btn.off {
+            background: #ddd; border-color: #bbb;
         }
     </style>
 </head>
@@ -152,9 +177,16 @@
         </div>
 
         <hr class="legend-divider">
-        <div style="font-size:13px;font-weight:bold;margin-bottom:8px;">Connections</div>
-        <div class="legend-item" style="pointer-events:none;margin-bottom:0;">
-            <div class="legend-arc-line"></div> Studios → Backa teater
+
+        <div id="visitors-header" class="legend-group-header">
+            <input type="checkbox" id="visitors-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
+            <h4 style="margin:0;display:inline;cursor:pointer;">Visitors</h4>
+        </div>
+        <div id="connections-row">
+            <div id="connections-label">
+                <div class="legend-arc-line"></div> Studios → Backa teater
+            </div>
+            <button id="migration-toggle-btn" title="Toggle migration arc"></button>
         </div>
     </div>
 
@@ -282,35 +314,29 @@
             customMarkers.push(m);
         });
 
-        // ── 6. Animated Migration Arc (self-contained canvas overlay) ──────────
-        // Replicates leaflet.migration visuals without any external plugin dependency.
-        // Arc: Studios building centroid → Backa teater
-        // Quadratic Bézier on canvas, animated travelling dot + pulsing source ring.
-
+        // ── 6. Migration Layer (canvas-based animated arc) ─────────────────────
         var MigrationLayer = L.Layer.extend({
             initialize: function(arcs, options) {
-                this._arcs    = arcs;   // [{ from:[lat,lng], to:[lat,lng], label }]
+                this._arcs    = arcs;
                 this._running = false;
                 this._rafId   = null;
-                this._t       = 0;      // animation progress 0→1
-                this._pulse   = 0;      // pulse radius progress 0→1
+                this._t       = 0;
+                this._pulse   = 0;
                 L.setOptions(this, options);
             },
 
             onAdd: function(map) {
                 this._map = map;
-                // Create canvas sized to the map pane
                 this._canvas = L.DomUtil.create('canvas', 'migration-canvas');
                 var size = map.getSize();
                 this._canvas.width  = size.x;
                 this._canvas.height = size.y;
-                this._canvas.style.position        = 'absolute';
-                this._canvas.style.top             = '0';
-                this._canvas.style.left            = '0';
-                this._canvas.style.pointerEvents   = 'none';
-                this._canvas.style.zIndex          = '450';
+                this._canvas.style.position      = 'absolute';
+                this._canvas.style.top           = '0';
+                this._canvas.style.left          = '0';
+                this._canvas.style.pointerEvents = 'none';
+                this._canvas.style.zIndex        = '450';
                 map.getPanes().overlayPane.appendChild(this._canvas);
-
                 map.on('moveend zoomend resize', this._reset, this);
                 this._reset();
                 this._startAnimation();
@@ -326,27 +352,22 @@
                 var size = this._map.getSize();
                 this._canvas.width  = size.x;
                 this._canvas.height = size.y;
-                // Reposition canvas to top-left of map pane
                 var topLeft = this._map.containerPointToLayerPoint([0, 0]);
                 L.DomUtil.setPosition(this._canvas, topLeft);
             },
 
-            // Convert [lat,lng] → canvas pixel point
             _project: function(latlng) {
                 return this._map.latLngToContainerPoint(L.latLng(latlng[0], latlng[1]));
             },
 
             _startAnimation: function() {
                 this._running = true;
-                var self = this;
-                var last = null;
+                var self = this, last = null;
                 function frame(ts) {
                     if (!self._running) return;
                     if (last === null) last = ts;
-                    var dt = (ts - last) / 1000;
-                    last = ts;
-                    // t cycles 0→1 every 2 seconds
-                    self._t     = (self._t + dt / 2.0) % 1.0;
+                    var dt = (ts - last) / 1000; last = ts;
+                    self._t     = (self._t     + dt / 2.0) % 1.0;
                     self._pulse = (self._pulse + dt / 1.2) % 1.0;
                     self._draw();
                     self._rafId = requestAnimationFrame(frame);
@@ -357,108 +378,131 @@
             _stopAnimation: function() {
                 this._running = false;
                 if (this._rafId) cancelAnimationFrame(this._rafId);
+                // Clear canvas when stopped
+                if (this._canvas) {
+                    var ctx = this._canvas.getContext('2d');
+                    ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+                }
             },
 
             _draw: function() {
-                var ctx    = this._canvas.getContext('2d');
-                var w      = this._canvas.width;
-                var h      = this._canvas.height;
-                ctx.clearRect(0, 0, w, h);
-
+                var ctx = this._canvas.getContext('2d');
+                ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
                 var self = this;
                 this._arcs.forEach(function(arc) {
                     var p0 = self._project(arc.from);
                     var p1 = self._project(arc.to);
-
-                    // Control point: lift the midpoint perpendicular to the line
-                    var mx  = (p0.x + p1.x) / 2;
-                    var my  = (p0.y + p1.y) / 2;
-                    var dx  = p1.x - p0.x;
-                    var dy  = p1.y - p0.y;
+                    var mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2;
+                    var dx = p1.x - p0.x, dy = p1.y - p0.y;
                     var len = Math.sqrt(dx*dx + dy*dy);
-                    // Lift = 35% of chord length, perpendicular upward
                     var lift = len * 0.35;
-                    var cx  = mx - (dy / len) * lift;
-                    var cy  = my + (dx / len) * lift;
+                    var cx = mx - (dy / len) * lift, cy = my + (dx / len) * lift;
 
-                    // ── Draw static arc ──────────────────────────────────────
+                    // Static arc
                     ctx.beginPath();
                     ctx.moveTo(p0.x, p0.y);
                     ctx.quadraticCurveTo(cx, cy, p1.x, p1.y);
-                    ctx.strokeStyle = 'rgba(231, 76, 60, 0.45)';
+                    ctx.strokeStyle = 'rgba(231,76,60,0.45)';
                     ctx.lineWidth   = 1.5;
                     ctx.stroke();
 
-                    // ── Pulsing ring at source ───────────────────────────────
-                    var pr     = 4 + self._pulse * 14;   // radius 4→18
-                    var palpha = (1 - self._pulse) * 0.8;
+                    // Pulsing ring at source
+                    var pr = 4 + self._pulse * 14;
                     ctx.beginPath();
                     ctx.arc(p0.x, p0.y, pr, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(231, 76, 60, ' + palpha + ')';
+                    ctx.strokeStyle = 'rgba(231,76,60,' + ((1 - self._pulse) * 0.8) + ')';
                     ctx.lineWidth   = 2;
                     ctx.stroke();
 
-                    // Small solid dot at source
+                    // Solid dot at source
                     ctx.beginPath();
                     ctx.arc(p0.x, p0.y, 4, 0, Math.PI * 2);
                     ctx.fillStyle = '#e74c3c';
                     ctx.fill();
 
-                    // ── Travelling dot along the Bézier ─────────────────────
-                    var t  = self._t;
-                    var u  = 1 - t;
-                    // Quadratic Bézier point
+                    // Travelling dot
+                    var t = self._t, u = 1 - t;
                     var tx = u*u*p0.x + 2*u*t*cx + t*t*p1.x;
                     var ty = u*u*p0.y + 2*u*t*cy + t*t*p1.y;
-                    // Tail: dot slightly behind
-                    var t2  = Math.max(0, t - 0.07);
-                    var u2  = 1 - t2;
+                    var t2 = Math.max(0, t - 0.07), u2 = 1 - t2;
                     var tx2 = u2*u2*p0.x + 2*u2*t2*cx + t2*t2*p1.x;
                     var ty2 = u2*u2*p0.y + 2*u2*t2*cy + t2*t2*p1.y;
 
-                    // Glowing tail
                     ctx.beginPath();
                     ctx.moveTo(tx2, ty2);
                     ctx.lineTo(tx, ty);
-                    ctx.strokeStyle = 'rgba(255, 102, 0, 0.6)';
+                    ctx.strokeStyle = 'rgba(255,102,0,0.6)';
                     ctx.lineWidth   = 3;
                     ctx.lineCap     = 'round';
                     ctx.stroke();
 
-                    // Bright head dot
                     ctx.beginPath();
                     ctx.arc(tx, ty, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ff6600';
+                    ctx.fillStyle   = '#ff6600';
                     ctx.shadowBlur  = 8;
                     ctx.shadowColor = '#ff6600';
                     ctx.fill();
                     ctx.shadowBlur  = 0;
 
-                    // ── Labels ───────────────────────────────────────────────
+                    // Labels
                     if (arc.label) {
                         ctx.font      = 'bold 11px sans-serif';
                         ctx.fillStyle = '#333';
-                        ctx.fillText(arc.from_label || 'Studios building',
-                            p0.x + 8, p0.y - 8);
-                        ctx.fillText(arc.to_label   || 'Backa teater',
-                            p1.x + 8, p1.y - 8);
+                        ctx.fillText(arc.from_label || 'Studios building', p0.x + 8, p0.y - 8);
+                        ctx.fillText(arc.to_label   || 'Backa teater',     p1.x + 8, p1.y - 8);
                     }
                 });
             }
         });
 
-        // Instantiate with one arc: Studios building centroid → Backa teater
         var migrationLayer = new MigrationLayer([
             {
-                from:       [57.70988, 11.93289],          // Studios building centroid
-                to:         [57.7059134823545, 11.935946002968043],  // Backa teater
+                from:       [57.7059134823545, 11.935946002968043],
+                to:         [57.70988, 11.93289],
                 label:      true,
-                from_label: 'Studios building',
-                to_label:   'Backa teater'
+                from_label: 'Backa teater',
+                to_label:   'Studios building'
             }
         ]);
         migrationLayer.addTo(map);
         console.log("Migration arc layer added.");
+
+        // ── Migration toggle button ────────────────────────────────────────────
+        var migrationVisible = true;
+        var btn            = document.getElementById('migration-toggle-btn');
+        var label          = document.getElementById('connections-label');
+        var visitorsHeader = document.getElementById('visitors-header');
+        var visitorsCb     = document.getElementById('visitors-checkbox');
+
+        function setMigrationVisible(visible) {
+            migrationVisible = visible;
+            if (visible) {
+                migrationLayer.addTo(map);
+                btn.classList.remove('off');
+                label.classList.remove('disabled');
+                visitorsHeader.classList.remove('disabled');
+                visitorsCb.checked = true;
+            } else {
+                map.removeLayer(migrationLayer);
+                btn.classList.add('off');
+                label.classList.add('disabled');
+                visitorsHeader.classList.add('disabled');
+                visitorsCb.checked = false;
+            }
+        }
+
+        btn.addEventListener('click', function() {
+            setMigrationVisible(!migrationVisible);
+        });
+
+        visitorsHeader.addEventListener('click', function(e) {
+            if (e.target.id === 'visitors-checkbox') return;
+            setMigrationVisible(!migrationVisible);
+        });
+
+        visitorsCb.addEventListener('change', function() {
+            setMigrationVisible(this.checked);
+        });
 
         // ── 7. Activity widget ─────────────────────────────────────────────────
         document.getElementById('widget-header').addEventListener('click', function() {
