@@ -72,6 +72,23 @@
         .legend-group-header.disabled h4 { opacity: 0.4; text-decoration: line-through; }
 
         /* Migration arc row */
+        /* Hover tooltip for migration arcs */
+        .migration-hover-tooltip {
+            position: fixed;
+            z-index: 9999;
+            background: rgba(255,255,255,0.92);
+            border: 0.4px solid #999;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
         .legend-arc-line {
             width: 22px; height: 3px; flex-shrink: 0; margin-right: 8px;
             background: linear-gradient(90deg, #e74c3c, #ff6600); border-radius: 2px;
@@ -187,6 +204,13 @@
                 <div class="legend-arc-line"></div> Studios → Backa teater
             </div>
             <button id="migration-toggle-btn" title="Toggle migration arc"></button>
+        </div>
+        <div id="capoeira-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
+            <div id="capoeira-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
+                <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
+                Capoeira — 20 countries → Studios
+            </div>
+            <button id="capoeira-toggle-btn" title="Toggle Capoeira arcs" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
     </div>
 
@@ -340,20 +364,82 @@
                 map.on('moveend zoomend resize', this._reset, this);
                 this._reset();
                 this._startAnimation();
+
+                // Hover tooltip — appended to body, positioned via raw client coords
+                this._tooltip = L.DomUtil.create('div', 'migration-hover-tooltip');
+                this._tooltip.style.display  = 'none';
+                this._tooltip.style.position = 'fixed';
+                document.body.appendChild(this._tooltip);
+                this._onMouseMove = this._handleMouseMove.bind(this);
+                map.getContainer().addEventListener('mousemove', this._onMouseMove);
             },
 
             onRemove: function(map) {
                 this._stopAnimation();
                 map.getPanes().overlayPane.removeChild(this._canvas);
                 map.off('moveend zoomend resize', this._reset, this);
+                map.getContainer().removeEventListener('mousemove', this._onMouseMove);
+                if (this._tooltip && this._tooltip.parentNode) {
+                    document.body.removeChild(this._tooltip);
+                }
+            },
+
+            _handleMouseMove: function(e) {
+                var rect   = this._map.getContainer().getBoundingClientRect();
+                var mouseX = e.clientX - rect.left;
+                var mouseY = e.clientY - rect.top;
+                var HIT_RADIUS = 6;
+                var hit = null;
+
+                for (var i = 0; i < this._arcs.length; i++) {
+                    var arc = this._arcs[i];
+                    var p0  = this._project(arc.from);
+                    var p1  = this._project(arc.to);
+
+                    // Check source dot
+                    var dx = mouseX - p0.x, dy = mouseY - p0.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < HIT_RADIUS + 6) {
+                        hit = arc.from_label || null;
+                        break;
+                    }
+
+                    // Sample 60 points along the bezier curve
+                    var mx   = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2;
+                    var adx  = p1.x - p0.x, ady = p1.y - p0.y;
+                    var len  = Math.sqrt(adx*adx + ady*ady);
+                    if (len < 1) continue;
+                    var lift = len * 0.35;
+                    var cx   = mx - (ady / len) * lift, cy = my + (adx / len) * lift;
+                    for (var s = 0; s <= 60; s++) {
+                        var tt = s / 60, uu = 1 - tt;
+                        var bx = uu*uu*p0.x + 2*uu*tt*cx + tt*tt*p1.x;
+                        var by = uu*uu*p0.y + 2*uu*tt*cy + tt*tt*p1.y;
+                        if (Math.sqrt((mouseX-bx)*(mouseX-bx) + (mouseY-by)*(mouseY-by)) < HIT_RADIUS) {
+                            hit = arc.from_label || null;
+                            break;
+                        }
+                    }
+                    if (hit) break;
+                }
+
+                if (hit) {
+                    this._tooltip.textContent = hit;
+                    this._tooltip.style.display = 'block';
+                    this._tooltip.style.left = (e.clientX + 14) + 'px';
+                    this._tooltip.style.top  = (e.clientY - 10) + 'px';
+                    this._map.getContainer().style.cursor = 'pointer';
+                } else {
+                    this._tooltip.style.display = 'none';
+                    this._map.getContainer().style.cursor = '';
+                }
             },
 
             _reset: function() {
                 var size = this._map.getSize();
                 this._canvas.width  = size.x;
                 this._canvas.height = size.y;
-                var topLeft = this._map.containerPointToLayerPoint([0, 0]);
-                L.DomUtil.setPosition(this._canvas, topLeft);
+                this._canvas.style.top  = '0';
+                this._canvas.style.left = '0';
             },
 
             _project: function(latlng) {
@@ -467,41 +553,138 @@
         migrationLayer.addTo(map);
         console.log("Migration arc layer added.");
 
-        // ── Migration toggle button ────────────────────────────────────────────
+        // ── Capoeira MigrationLayer ────────────────────────────────────────────
+        // Studios building centroid as common target [lat, lng]
+        var STUDIOS = [57.70988, 11.93289];
+
+        // One representative coordinate per country (approximate city centres)
+        var capoeiraArcs = [
+            { from: [60.1699, 24.9384],  from_label: 'Finland',        to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [59.4370, 24.7536],  from_label: 'Estonia',        to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [54.6872, 25.2797],  from_label: 'Lithuania',      to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [35.8997, 14.5147],  from_label: 'Malta',          to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [51.5074, -0.1278],  from_label: 'England',        to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [38.8951, -77.0369], from_label: 'USA',            to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [52.2297, 21.0122],  from_label: 'Poland',         to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [50.0755, 14.4378],  from_label: 'Czech Republic', to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [48.2082, 16.3738],  from_label: 'Austria',        to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [4.7110, -74.0721],  from_label: 'Colombia',       to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [40.4168, -3.7038],  from_label: 'Spain',          to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [41.9028, 12.4964],  from_label: 'Italy',          to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [49.6117, 6.1319],   from_label: 'Luxembourg',     to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [52.5200, 13.4050],  from_label: 'Germany',        to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [38.7169, -9.1395],  from_label: 'Portugal',       to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [52.3676, 4.9041],   from_label: 'Netherlands',    to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [48.8566, 2.3522],   from_label: 'France',         to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [50.8503, 4.3517],   from_label: 'Belgium',        to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [-15.7801, -47.9292],from_label: 'Brazil',         to: STUDIOS, to_label: 'Studios building', label: true }
+        ];
+
+        var capoeiraLayer = new MigrationLayer(capoeiraArcs);
+        capoeiraLayer.addTo(map);
+        console.log("Capoeira migration layer added:", capoeiraArcs.length, "arcs");
+
+
+        // ── Visitors toggle ────────────────────────────────────────────────────
         var migrationVisible = true;
+        var capoeiraVisible  = true;
+
         var btn            = document.getElementById('migration-toggle-btn');
+        var capoeiraBtn    = document.getElementById('capoeira-toggle-btn');
         var label          = document.getElementById('connections-label');
+        var capoeiraLbl    = document.getElementById('capoeira-label');
         var visitorsHeader = document.getElementById('visitors-header');
         var visitorsCb     = document.getElementById('visitors-checkbox');
 
-        function setMigrationVisible(visible) {
-            migrationVisible = visible;
-            if (visible) {
+        // ── Visitors toggle ────────────────────────────────────────────────────
+        var migrationVisible = true;
+        var capoeiraVisible  = true;
+
+        var btn            = document.getElementById('migration-toggle-btn');
+        var capoeiraBtn    = document.getElementById('capoeira-toggle-btn');
+        var label          = document.getElementById('connections-label');
+        var capoeiraLbl    = document.getElementById('capoeira-label');
+        var visitorsHeader = document.getElementById('visitors-header');
+        var visitorsCb     = document.getElementById('visitors-checkbox');
+
+        // Individual Studios circle toggle
+        btn.addEventListener('click', function() {
+            migrationVisible = !migrationVisible;
+            if (migrationVisible) {
                 migrationLayer.addTo(map);
                 btn.classList.remove('off');
+                btn.style.background  = '#e74c3c';
+                btn.style.borderColor = '#aaa';
                 label.classList.remove('disabled');
+            } else {
+                map.removeLayer(migrationLayer);
+                btn.classList.add('off');
+                btn.style.background  = '#ddd';
+                btn.style.borderColor = '#bbb';
+                label.classList.add('disabled');
+            }
+        });
+
+        // Individual Capoeira circle toggle
+        capoeiraBtn.addEventListener('click', function() {
+            capoeiraVisible = !capoeiraVisible;
+            if (capoeiraVisible) {
+                capoeiraLayer.addTo(map);
+                capoeiraBtn.style.background  = '#1a6fc4';
+                capoeiraBtn.style.borderColor = '#aaa';
+                capoeiraLbl.classList.remove('disabled');
+            } else {
+                map.removeLayer(capoeiraLayer);
+                capoeiraBtn.style.background  = '#ddd';
+                capoeiraBtn.style.borderColor = '#bbb';
+                capoeiraLbl.classList.add('disabled');
+            }
+        });
+
+        // Visitors checkbox/header controls both layers together
+        function setAllVisible(visible) {
+            migrationVisible = visible;
+            capoeiraVisible  = visible;
+            if (visible) {
+                migrationLayer.addTo(map);
+                capoeiraLayer.addTo(map);
+                // Restore Studios circle to red
+                btn.classList.remove('off');
+                btn.style.background  = '#e74c3c';
+                btn.style.borderColor = '#aaa';
+                // Restore Capoeira circle to blue
+                capoeiraBtn.style.background  = '#1a6fc4';
+                capoeiraBtn.style.borderColor = '#aaa';
+                // Restore labels
+                label.classList.remove('disabled');
+                capoeiraLbl.classList.remove('disabled');
                 visitorsHeader.classList.remove('disabled');
                 visitorsCb.checked = true;
             } else {
                 map.removeLayer(migrationLayer);
+                map.removeLayer(capoeiraLayer);
+                // Grey out Studios circle
                 btn.classList.add('off');
+                btn.style.background  = '#ddd';
+                btn.style.borderColor = '#bbb';
+                // Grey out Capoeira circle
+                capoeiraBtn.style.background  = '#ddd';
+                capoeiraBtn.style.borderColor = '#bbb';
+                // Strike through labels
                 label.classList.add('disabled');
+                capoeiraLbl.classList.add('disabled');
                 visitorsHeader.classList.add('disabled');
                 visitorsCb.checked = false;
             }
         }
 
-        btn.addEventListener('click', function() {
-            setMigrationVisible(!migrationVisible);
-        });
-
         visitorsHeader.addEventListener('click', function(e) {
             if (e.target.id === 'visitors-checkbox') return;
-            setMigrationVisible(!migrationVisible);
+            setAllVisible(!(migrationVisible && capoeiraVisible));
         });
 
         visitorsCb.addEventListener('change', function() {
-            setMigrationVisible(this.checked);
+            setAllVisible(this.checked);
         });
 
         // ── 7. Activity widget ─────────────────────────────────────────────────
