@@ -71,8 +71,6 @@
         }
         .legend-group-header.disabled h4 { opacity: 0.4; text-decoration: line-through; }
 
-        /* Migration arc row */
-        /* Hover tooltip for migration arcs */
         .migration-hover-tooltip {
             position: fixed;
             z-index: 9999;
@@ -87,6 +85,13 @@
             pointer-events: none;
             white-space: nowrap;
             box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Canvas must not be clipped by the map container */
+        .leaflet-map-pane canvas.migration-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
         }
 
         .legend-arc-line {
@@ -113,9 +118,7 @@
             transition: background 0.2s, border-color 0.2s;
         }
         #migration-toggle-btn:hover { filter: brightness(0.88); }
-        #migration-toggle-btn.off {
-            background: #ddd; border-color: #bbb;
-        }
+        #migration-toggle-btn.off { background: #ddd; border-color: #bbb; }
     </style>
 </head>
 <body>
@@ -338,7 +341,12 @@
             customMarkers.push(m);
         });
 
-        // ── 6. Migration Layer (canvas-based animated arc) ─────────────────────
+        // ── 6. MigrationLayer ──────────────────────────────────────────────────
+        // KEY FIX: canvas lives in map.getContainer() directly (not overlayPane).
+        // overlayPane gets CSS-transformed by Leaflet during zoom animations, which
+        // offsets the canvas. The map container itself is never transformed, so
+        // anchoring the canvas there — and re-projecting lat/lng every rAF — keeps
+        // arcs pixel-perfect at every zoom level and during smooth zoom animations.
         var MigrationLayer = L.Layer.extend({
             initialize: function(arcs, options) {
                 this._arcs    = arcs;
@@ -351,97 +359,50 @@
 
             onAdd: function(map) {
                 this._map = map;
-                this._canvas = L.DomUtil.create('canvas', 'migration-canvas');
-                var size = map.getSize();
-                this._canvas.width  = size.x;
-                this._canvas.height = size.y;
+
+                // Attach canvas directly to the map container, NOT overlayPane
+                this._canvas = document.createElement('canvas');
+                this._canvas.className = 'migration-canvas';
                 this._canvas.style.position      = 'absolute';
                 this._canvas.style.top           = '0';
                 this._canvas.style.left          = '0';
                 this._canvas.style.pointerEvents = 'none';
                 this._canvas.style.zIndex        = '450';
-                map.getPanes().overlayPane.appendChild(this._canvas);
-                map.on('moveend zoomend resize', this._reset, this);
-                this._reset();
-                this._startAnimation();
+                map.getContainer().appendChild(this._canvas);
 
-                // Hover tooltip — appended to body, positioned via raw client coords
-                this._tooltip = L.DomUtil.create('div', 'migration-hover-tooltip');
-                this._tooltip.style.display  = 'none';
-                this._tooltip.style.position = 'fixed';
+                this._resize();
+                map.on('resize', this._resize, this);
+
+                // Hover tooltip
+                this._tooltip = document.createElement('div');
+                this._tooltip.className        = 'migration-hover-tooltip';
+                this._tooltip.style.display    = 'none';
+                this._tooltip.style.position   = 'fixed';
                 document.body.appendChild(this._tooltip);
+
                 this._onMouseMove = this._handleMouseMove.bind(this);
                 map.getContainer().addEventListener('mousemove', this._onMouseMove);
+
+                this._startAnimation();
             },
 
             onRemove: function(map) {
                 this._stopAnimation();
-                map.getPanes().overlayPane.removeChild(this._canvas);
-                map.off('moveend zoomend resize', this._reset, this);
+                if (this._canvas.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+                map.off('resize', this._resize, this);
                 map.getContainer().removeEventListener('mousemove', this._onMouseMove);
-                if (this._tooltip && this._tooltip.parentNode) {
-                    document.body.removeChild(this._tooltip);
-                }
+                if (this._tooltip.parentNode) document.body.removeChild(this._tooltip);
             },
 
-            _handleMouseMove: function(e) {
-                var rect   = this._map.getContainer().getBoundingClientRect();
-                var mouseX = e.clientX - rect.left;
-                var mouseY = e.clientY - rect.top;
-                var HIT_RADIUS = 6;
-                var hit = null;
-
-                for (var i = 0; i < this._arcs.length; i++) {
-                    var arc = this._arcs[i];
-                    var p0  = this._project(arc.from);
-                    var p1  = this._project(arc.to);
-
-                    // Check source dot
-                    var dx = mouseX - p0.x, dy = mouseY - p0.y;
-                    if (Math.sqrt(dx*dx + dy*dy) < HIT_RADIUS + 6) {
-                        hit = arc.from_label || null;
-                        break;
-                    }
-
-                    // Sample 60 points along the bezier curve
-                    var mx   = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2;
-                    var adx  = p1.x - p0.x, ady = p1.y - p0.y;
-                    var len  = Math.sqrt(adx*adx + ady*ady);
-                    if (len < 1) continue;
-                    var lift = len * 0.35;
-                    var cx   = mx - (ady / len) * lift, cy = my + (adx / len) * lift;
-                    for (var s = 0; s <= 60; s++) {
-                        var tt = s / 60, uu = 1 - tt;
-                        var bx = uu*uu*p0.x + 2*uu*tt*cx + tt*tt*p1.x;
-                        var by = uu*uu*p0.y + 2*uu*tt*cy + tt*tt*p1.y;
-                        if (Math.sqrt((mouseX-bx)*(mouseX-bx) + (mouseY-by)*(mouseY-by)) < HIT_RADIUS) {
-                            hit = arc.from_label || null;
-                            break;
-                        }
-                    }
-                    if (hit) break;
-                }
-
-                if (hit) {
-                    this._tooltip.textContent = hit;
-                    this._tooltip.style.display = 'block';
-                    this._tooltip.style.left = (e.clientX + 14) + 'px';
-                    this._tooltip.style.top  = (e.clientY - 10) + 'px';
-                    this._map.getContainer().style.cursor = 'pointer';
-                } else {
-                    this._tooltip.style.display = 'none';
-                    this._map.getContainer().style.cursor = '';
-                }
-            },
-
-            _reset: function() {
+            _resize: function() {
                 var size = this._map.getSize();
                 this._canvas.width  = size.x;
                 this._canvas.height = size.y;
-                this._canvas.style.top  = '0';
-                this._canvas.style.left = '0';
             },
 
+            // Use latLngToContainerPoint — this always returns the correct pixel
+            // position relative to the map container, regardless of zoom level or
+            // any CSS transforms applied to inner panes.
             _project: function(latlng) {
                 return this._map.latLngToContainerPoint(L.latLng(latlng[0], latlng[1]));
             },
@@ -463,26 +424,29 @@
 
             _stopAnimation: function() {
                 this._running = false;
-                if (this._rafId) cancelAnimationFrame(this._rafId);
-                // Clear canvas when stopped
+                if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null; }
                 if (this._canvas) {
-                    var ctx = this._canvas.getContext('2d');
-                    ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+                    this._canvas.getContext('2d').clearRect(0, 0, this._canvas.width, this._canvas.height);
                 }
             },
 
             _draw: function() {
-                var ctx = this._canvas.getContext('2d');
-                ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+                var ctx  = this._canvas.getContext('2d');
                 var self = this;
+                ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+
                 this._arcs.forEach(function(arc) {
-                    var p0 = self._project(arc.from);
-                    var p1 = self._project(arc.to);
-                    var mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2;
-                    var dx = p1.x - p0.x, dy = p1.y - p0.y;
+                    var p0  = self._project(arc.from);
+                    var p1  = self._project(arc.to);
+                    var mx  = (p0.x + p1.x) / 2;
+                    var my  = (p0.y + p1.y) / 2;
+                    var dx  = p1.x - p0.x;
+                    var dy  = p1.y - p0.y;
                     var len = Math.sqrt(dx*dx + dy*dy);
+                    if (len < 1) return;
                     var lift = len * 0.35;
-                    var cx = mx - (dy / len) * lift, cy = my + (dx / len) * lift;
+                    var cx = mx - (dy / len) * lift;
+                    var cy = my + (dx / len) * lift;
 
                     // Static arc
                     ctx.beginPath();
@@ -507,7 +471,7 @@
                     ctx.fill();
 
                     // Travelling dot
-                    var t = self._t, u = 1 - t;
+                    var t  = self._t, u = 1 - t;
                     var tx = u*u*p0.x + 2*u*t*cx + t*t*p1.x;
                     var ty = u*u*p0.y + 2*u*t*cy + t*t*p1.y;
                     var t2 = Math.max(0, t - 0.07), u2 = 1 - t2;
@@ -534,13 +498,59 @@
                     if (arc.label) {
                         ctx.font      = 'bold 11px sans-serif';
                         ctx.fillStyle = '#333';
-                        ctx.fillText(arc.from_label || 'Studios building', p0.x + 8, p0.y - 8);
-                        ctx.fillText(arc.to_label   || 'Backa teater',     p1.x + 8, p1.y - 8);
+                        ctx.fillText(arc.from_label || '', p0.x + 8, p0.y - 8);
+                        ctx.fillText(arc.to_label   || '', p1.x + 8, p1.y - 8);
                     }
                 });
+            },
+
+            _handleMouseMove: function(e) {
+                var rect   = this._map.getContainer().getBoundingClientRect();
+                var mouseX = e.clientX - rect.left;
+                var mouseY = e.clientY - rect.top;
+                var HIT    = 6;
+                var hit    = null;
+
+                for (var i = 0; i < this._arcs.length; i++) {
+                    var arc = this._arcs[i];
+                    var p0  = this._project(arc.from);
+                    var p1  = this._project(arc.to);
+
+                    // Source dot hit
+                    var dx = mouseX - p0.x, dy = mouseY - p0.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < HIT + 6) { hit = arc.from_label || null; break; }
+
+                    // Curve hit — sample 60 points
+                    var mx  = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
+                    var adx = p1.x-p0.x,  ady = p1.y-p0.y;
+                    var len = Math.sqrt(adx*adx + ady*ady);
+                    if (len < 1) continue;
+                    var cx = mx - (ady/len)*len*0.35, cy = my + (adx/len)*len*0.35;
+                    for (var s = 0; s <= 60; s++) {
+                        var tt = s/60, uu = 1-tt;
+                        var bx = uu*uu*p0.x + 2*uu*tt*cx + tt*tt*p1.x;
+                        var by = uu*uu*p0.y + 2*uu*tt*cy + tt*tt*p1.y;
+                        if (Math.sqrt((mouseX-bx)*(mouseX-bx)+(mouseY-by)*(mouseY-by)) < HIT) {
+                            hit = arc.from_label || null; break;
+                        }
+                    }
+                    if (hit) break;
+                }
+
+                if (hit) {
+                    this._tooltip.textContent  = hit;
+                    this._tooltip.style.display = 'block';
+                    this._tooltip.style.left    = (e.clientX + 14) + 'px';
+                    this._tooltip.style.top     = (e.clientY - 10) + 'px';
+                    this._map.getContainer().style.cursor = 'pointer';
+                } else {
+                    this._tooltip.style.display = 'none';
+                    this._map.getContainer().style.cursor = '';
+                }
             }
         });
 
+        // ── Migration layers ───────────────────────────────────────────────────
         var migrationLayer = new MigrationLayer([
             {
                 from:       [57.7059134823545, 11.935946002968043],
@@ -551,13 +561,8 @@
             }
         ]);
         migrationLayer.addTo(map);
-        console.log("Migration arc layer added.");
 
-        // ── Capoeira MigrationLayer ────────────────────────────────────────────
-        // Studios building centroid as common target [lat, lng]
         var STUDIOS = [57.70988, 11.93289];
-
-        // One representative coordinate per country (approximate city centres)
         var capoeiraArcs = [
             { from: [60.1699, 24.9384],  from_label: 'Finland',        to: STUDIOS, to_label: 'Studios building', label: true },
             { from: [59.4370, 24.7536],  from_label: 'Estonia',        to: STUDIOS, to_label: 'Studios building', label: true },
@@ -582,8 +587,6 @@
 
         var capoeiraLayer = new MigrationLayer(capoeiraArcs);
         capoeiraLayer.addTo(map);
-        console.log("Capoeira migration layer added:", capoeiraArcs.length, "arcs");
-
 
         // ── Visitors toggle ────────────────────────────────────────────────────
         var migrationVisible = true;
@@ -596,18 +599,6 @@
         var visitorsHeader = document.getElementById('visitors-header');
         var visitorsCb     = document.getElementById('visitors-checkbox');
 
-        // ── Visitors toggle ────────────────────────────────────────────────────
-        var migrationVisible = true;
-        var capoeiraVisible  = true;
-
-        var btn            = document.getElementById('migration-toggle-btn');
-        var capoeiraBtn    = document.getElementById('capoeira-toggle-btn');
-        var label          = document.getElementById('connections-label');
-        var capoeiraLbl    = document.getElementById('capoeira-label');
-        var visitorsHeader = document.getElementById('visitors-header');
-        var visitorsCb     = document.getElementById('visitors-checkbox');
-
-        // Individual Studios circle toggle
         btn.addEventListener('click', function() {
             migrationVisible = !migrationVisible;
             if (migrationVisible) {
@@ -625,7 +616,6 @@
             }
         });
 
-        // Individual Capoeira circle toggle
         capoeiraBtn.addEventListener('click', function() {
             capoeiraVisible = !capoeiraVisible;
             if (capoeiraVisible) {
@@ -641,21 +631,17 @@
             }
         });
 
-        // Visitors checkbox/header controls both layers together
         function setAllVisible(visible) {
             migrationVisible = visible;
             capoeiraVisible  = visible;
             if (visible) {
                 migrationLayer.addTo(map);
                 capoeiraLayer.addTo(map);
-                // Restore Studios circle to red
                 btn.classList.remove('off');
-                btn.style.background  = '#e74c3c';
-                btn.style.borderColor = '#aaa';
-                // Restore Capoeira circle to blue
+                btn.style.background          = '#e74c3c';
+                btn.style.borderColor         = '#aaa';
                 capoeiraBtn.style.background  = '#1a6fc4';
                 capoeiraBtn.style.borderColor = '#aaa';
-                // Restore labels
                 label.classList.remove('disabled');
                 capoeiraLbl.classList.remove('disabled');
                 visitorsHeader.classList.remove('disabled');
@@ -663,14 +649,11 @@
             } else {
                 map.removeLayer(migrationLayer);
                 map.removeLayer(capoeiraLayer);
-                // Grey out Studios circle
                 btn.classList.add('off');
-                btn.style.background  = '#ddd';
-                btn.style.borderColor = '#bbb';
-                // Grey out Capoeira circle
+                btn.style.background          = '#ddd';
+                btn.style.borderColor         = '#bbb';
                 capoeiraBtn.style.background  = '#ddd';
                 capoeiraBtn.style.borderColor = '#bbb';
-                // Strike through labels
                 label.classList.add('disabled');
                 capoeiraLbl.classList.add('disabled');
                 visitorsHeader.classList.add('disabled');
@@ -682,16 +665,13 @@
             if (e.target.id === 'visitors-checkbox') return;
             setAllVisible(!(migrationVisible && capoeiraVisible));
         });
-
-        visitorsCb.addEventListener('change', function() {
-            setAllVisible(this.checked);
-        });
+        visitorsCb.addEventListener('change', function() { setAllVisible(this.checked); });
 
         // ── 7. Activity widget ─────────────────────────────────────────────────
         document.getElementById('widget-header').addEventListener('click', function() {
-            var body = document.getElementById('widget-body');
-            var widget = document.getElementById('activity-widget');
-            var toggle = document.getElementById('widget-toggle');
+            var body      = document.getElementById('widget-body');
+            var widget    = document.getElementById('activity-widget');
+            var toggle    = document.getElementById('widget-toggle');
             var collapsed = body.classList.toggle('hidden');
             widget.classList.toggle('collapsed', collapsed);
             toggle.textContent = collapsed ? '▼' : '▲';
