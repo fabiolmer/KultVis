@@ -292,9 +292,37 @@
         <div id="concert-large-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="concert-large-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
                 <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
-                Concert Large — Norway, Västra Götaland
+                Concert, Large — #1 — Norway, Västra Götaland
             </div>
-            <button id="concert-large-toggle-btn" title="Toggle Concert Large arcs" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+            <button id="concert-large-toggle-btn" title="Toggle Concert Large #1" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+        </div>
+        <div id="concert-large2-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
+            <div id="concert-large2-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
+                <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
+                Concert, Large — #2
+            </div>
+            <button id="concert-large2-toggle-btn" title="Toggle Concert Large #2" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+        </div>
+        <div id="concert-medium3-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
+            <div id="concert-medium3-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
+                <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
+                Concert, Medium — #3
+            </div>
+            <button id="concert-medium3-toggle-btn" title="Toggle Concert Medium #3" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+        </div>
+        <div id="fair-large4-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
+            <div id="fair-large4-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
+                <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
+                Fair, Large — #4
+            </div>
+            <button id="fair-large4-toggle-btn" title="Toggle Fair Large #4" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
+        </div>
+        <div id="concert-medium5-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
+            <div id="concert-medium5-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
+                <div style="width:22px;height:3px;flex-shrink:0;margin-right:8px;background:linear-gradient(90deg,#1a6fc4,#56b4d3);border-radius:2px;"></div>
+                Concert, Medium — #5
+            </div>
+            <button id="concert-medium5-toggle-btn" title="Toggle Concert Medium #5" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         </div>
     </div>
@@ -315,15 +343,17 @@
         // ── Zoom view buttons ──────────────────────────────────────────────────
         document.getElementById('btn-zoom-world').addEventListener('click', function() {
             var points = [];
-
-            if (capoeiraVisible) {
-                capoeiraArcs.forEach(function(a) { points.push(a.from); });
-            }
-            if (concertLargeVisible) {
-                concertLargeArcs.forEach(function(a) { points.push(a.from); });
-            }
-
-            // Always include Studios building as the target if any layer is active
+            var activeLayers = [
+                { arcs: capoeiraArcs,       visible: capoeiraVisible },
+                { arcs: concertLargeArcs,   visible: concertLargeVisible },
+                { arcs: concertLarge2Arcs,  visible: concertLarge2Visible },
+                { arcs: concertMedium3Arcs, visible: concertMedium3Visible },
+                { arcs: fairLarge4Arcs,     visible: fairLarge4Visible },
+                { arcs: concertMedium5Arcs, visible: concertMedium5Visible }
+            ];
+            activeLayers.forEach(function(e) {
+                if (e.visible) e.arcs.forEach(function(a) { points.push(a.from); });
+            });
             if (points.length > 0) {
                 points.push(STUDIOS);
                 map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 10 });
@@ -705,78 +735,125 @@
         var concertLargeLayer = new MigrationLayer(concertLargeArcs);
         concertLargeLayer.addTo(map);
 
+        // ── #2 Concert Large ───────────────────────────────────────────────────
+        var concertLarge2Arcs = [
+            { from: [58.2528, 13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true }
+        ];
+        var concertLarge2Layer = new MigrationLayer(concertLarge2Arcs);
+        concertLarge2Layer.addTo(map);
+
+        // ── #3 Concert Medium ──────────────────────────────────────────────────
+        var concertMedium3Arcs = [
+            { from: [59.9139, 10.7522],  from_label: 'Norway',               to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [55.6761,  12.5683], from_label: 'Denmark',              to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [58.2528,  13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true }
+        ];
+
+        var fairLarge4Arcs = [
+            { from: [58.2528, 13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [56.6745, 12.8578], from_label: 'Halland',                to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [55.9903, 13.5958], from_label: 'Skåne',                  to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [57.0000, 14.8333], from_label: 'Småland',                to: STUDIOS, to_label: 'Studios building', label: true }
+        ];
+
+        var concertMedium5Arcs = [
+            { from: [58.2528, 13.0596], from_label: 'Region Västra Götaland', to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [55.9903, 13.5958], from_label: 'Skåne',                  to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [57.0000, 14.8333], from_label: 'Småland',                to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [59.3293, 18.0686], from_label: 'Stockholm',              to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [58.4108, 15.6214], from_label: 'Östergötland',           to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [66.8309, 20.3963], from_label: 'Norrbotten',             to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [63.1282, 14.6403], from_label: 'Jämtland',               to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [59.9139, 10.7522], from_label: 'Norway',                 to: STUDIOS, to_label: 'Studios building', label: true },
+            { from: [52.5200, 13.4050], from_label: 'Germany',                to: STUDIOS, to_label: 'Studios building', label: true }
+        ];
+        var concertMedium5Layer = new MigrationLayer(concertMedium5Arcs);
+        concertMedium5Layer.addTo(map);
+
         // ── Visitors toggle ────────────────────────────────────────────────────
-        var capoeiraVisible     = true;
-        var concertLargeVisible = true;
+        var capoeiraVisible       = true;
+        var concertLargeVisible   = true;
+        var concertLarge2Visible  = true;
+        var concertMedium3Visible = true;
+        var fairLarge4Visible     = true;
+        var concertMedium5Visible = true;
 
         var capoeiraBtn         = document.getElementById('capoeira-toggle-btn');
         var concertLargeBtn     = document.getElementById('concert-large-toggle-btn');
+        var concertLarge2Btn    = document.getElementById('concert-large2-toggle-btn');
+        var concertMedium3Btn   = document.getElementById('concert-medium3-toggle-btn');
+        var fairLarge4Btn       = document.getElementById('fair-large4-toggle-btn');
+        var concertMedium5Btn   = document.getElementById('concert-medium5-toggle-btn');
         var capoeiraLbl         = document.getElementById('capoeira-label');
         var concertLargeLbl     = document.getElementById('concert-large-label');
+        var concertLarge2Lbl    = document.getElementById('concert-large2-label');
+        var concertMedium3Lbl   = document.getElementById('concert-medium3-label');
+        var fairLarge4Lbl       = document.getElementById('fair-large4-label');
+        var concertMedium5Lbl   = document.getElementById('concert-medium5-label');
         var visitorsHeader      = document.getElementById('visitors-header');
         var visitorsCb          = document.getElementById('visitors-checkbox');
 
-        capoeiraBtn.addEventListener('click', function() {
-            capoeiraVisible = !capoeiraVisible;
-            if (capoeiraVisible) {
-                capoeiraLayer.addTo(map);
-                capoeiraBtn.style.background  = '#1a6fc4';
-                capoeiraBtn.style.borderColor = '#aaa';
-                capoeiraLbl.classList.remove('disabled');
-            } else {
-                map.removeLayer(capoeiraLayer);
-                capoeiraBtn.style.background  = '#ddd';
-                capoeiraBtn.style.borderColor = '#bbb';
-                capoeiraLbl.classList.add('disabled');
-            }
-        });
+        // Helper to wire up each individual toggle button
+        function makeToggle(btn, getVisible, setVisible, layer, lbl) {
+            btn.addEventListener('click', function() {
+                var v = !getVisible();
+                setVisible(v);
+                if (v) {
+                    layer.addTo(map);
+                    btn.style.background  = '#1a6fc4';
+                    btn.style.borderColor = '#aaa';
+                    lbl.classList.remove('disabled');
+                } else {
+                    map.removeLayer(layer);
+                    btn.style.background  = '#ddd';
+                    btn.style.borderColor = '#bbb';
+                    lbl.classList.add('disabled');
+                }
+            });
+        }
 
-        concertLargeBtn.addEventListener('click', function() {
-            concertLargeVisible = !concertLargeVisible;
-            if (concertLargeVisible) {
-                concertLargeLayer.addTo(map);
-                concertLargeBtn.style.background  = '#1a6fc4';
-                concertLargeBtn.style.borderColor = '#aaa';
-                concertLargeLbl.classList.remove('disabled');
-            } else {
-                map.removeLayer(concertLargeLayer);
-                concertLargeBtn.style.background  = '#ddd';
-                concertLargeBtn.style.borderColor = '#bbb';
-                concertLargeLbl.classList.add('disabled');
-            }
-        });
+        makeToggle(capoeiraBtn,       function(){ return capoeiraVisible; },       function(v){ capoeiraVisible = v; },       capoeiraLayer,       capoeiraLbl);
+        makeToggle(concertLargeBtn,   function(){ return concertLargeVisible; },   function(v){ concertLargeVisible = v; },   concertLargeLayer,   concertLargeLbl);
+        makeToggle(concertLarge2Btn,  function(){ return concertLarge2Visible; },  function(v){ concertLarge2Visible = v; },  concertLarge2Layer,  concertLarge2Lbl);
+        makeToggle(concertMedium3Btn, function(){ return concertMedium3Visible; }, function(v){ concertMedium3Visible = v; }, concertMedium3Layer, concertMedium3Lbl);
+        makeToggle(fairLarge4Btn,     function(){ return fairLarge4Visible; },     function(v){ fairLarge4Visible = v; },     fairLarge4Layer,     fairLarge4Lbl);
+        makeToggle(concertMedium5Btn, function(){ return concertMedium5Visible; }, function(v){ concertMedium5Visible = v; }, concertMedium5Layer, concertMedium5Lbl);
+
+        var allLayers = [
+            { layer: capoeiraLayer,       btn: capoeiraBtn,       lbl: capoeiraLbl,       setV: function(v){ capoeiraVisible = v; } },
+            { layer: concertLargeLayer,   btn: concertLargeBtn,   lbl: concertLargeLbl,   setV: function(v){ concertLargeVisible = v; } },
+            { layer: concertLarge2Layer,  btn: concertLarge2Btn,  lbl: concertLarge2Lbl,  setV: function(v){ concertLarge2Visible = v; } },
+            { layer: concertMedium3Layer, btn: concertMedium3Btn, lbl: concertMedium3Lbl, setV: function(v){ concertMedium3Visible = v; } },
+            { layer: fairLarge4Layer,     btn: fairLarge4Btn,     lbl: fairLarge4Lbl,     setV: function(v){ fairLarge4Visible = v; } },
+            { layer: concertMedium5Layer, btn: concertMedium5Btn, lbl: concertMedium5Lbl, setV: function(v){ concertMedium5Visible = v; } }
+        ];
 
         function setAllVisible(visible) {
-            capoeiraVisible     = visible;
-            concertLargeVisible = visible;
-            if (visible) {
-                capoeiraLayer.addTo(map);
-                concertLargeLayer.addTo(map);
-                capoeiraBtn.style.background      = '#1a6fc4';
-                capoeiraBtn.style.borderColor     = '#aaa';
-                concertLargeBtn.style.background  = '#1a6fc4';
-                concertLargeBtn.style.borderColor = '#aaa';
-                capoeiraLbl.classList.remove('disabled');
-                concertLargeLbl.classList.remove('disabled');
-                visitorsHeader.classList.remove('disabled');
-                visitorsCb.checked = true;
-            } else {
-                map.removeLayer(capoeiraLayer);
-                map.removeLayer(concertLargeLayer);
-                capoeiraBtn.style.background      = '#ddd';
-                capoeiraBtn.style.borderColor     = '#bbb';
-                concertLargeBtn.style.background  = '#ddd';
-                concertLargeBtn.style.borderColor = '#bbb';
-                capoeiraLbl.classList.add('disabled');
-                concertLargeLbl.classList.add('disabled');
-                visitorsHeader.classList.add('disabled');
-                visitorsCb.checked = false;
-            }
+            capoeiraVisible = concertLargeVisible = concertLarge2Visible =
+            concertMedium3Visible = fairLarge4Visible = concertMedium5Visible = visible;
+            allLayers.forEach(function(e) {
+                e.setV(visible);
+                if (visible) {
+                    e.layer.addTo(map);
+                    e.btn.style.background  = '#1a6fc4';
+                    e.btn.style.borderColor = '#aaa';
+                    e.lbl.classList.remove('disabled');
+                } else {
+                    map.removeLayer(e.layer);
+                    e.btn.style.background  = '#ddd';
+                    e.btn.style.borderColor = '#bbb';
+                    e.lbl.classList.add('disabled');
+                }
+            });
+            visitorsHeader.classList.toggle('disabled', !visible);
+            visitorsCb.checked = visible;
         }
 
         visitorsHeader.addEventListener('click', function(e) {
             if (e.target.id === 'visitors-checkbox') return;
-            setAllVisible(!(capoeiraVisible && concertLargeVisible));
+            var anyOn = capoeiraVisible || concertLargeVisible || concertLarge2Visible ||
+                        concertMedium3Visible || fairLarge4Visible || concertMedium5Visible;
+            setAllVisible(!anyOn);
         });
         visitorsCb.addEventListener('change', function() { setAllVisible(this.checked); });
 
