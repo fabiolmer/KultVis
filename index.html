@@ -136,7 +136,9 @@
             box-shadow: none; /* shadow already on wrapper */
         }
         #zoom-extra a {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 30px;
             height: 30px;
             line-height: 30px;
@@ -148,6 +150,27 @@
             border-bottom: 1px solid #ccc;
             cursor: pointer;
             user-select: none;
+            position: relative;
+        }
+        #zoom-extra a .zoom-label {
+            display: none;
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.95);
+            border: 0.4px solid #999;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-family: sans-serif;
+            font-size: 12px;
+            color: #333;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            pointer-events: none;
+        }
+        #zoom-extra a:hover .zoom-label {
+            display: block;
         }
         #zoom-extra a:first-child {
             border-radius: 4px 4px 0 0;
@@ -175,8 +198,11 @@
                     <line x1="2" y1="12" x2="22" y2="12"/>
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                 </svg>
+                <span class="zoom-label">Global extent</span>
             </a>
-            <a id="btn-zoom-local" title="Close-up on Lindholmen" role="button">🔍</a>
+            <a id="btn-zoom-local" title="Close-up on Lindholmen" role="button">
+                🔍<span class="zoom-label">Close-up</span>
+            </a>
         </div>
     </div>
 
