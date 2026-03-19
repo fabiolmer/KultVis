@@ -96,6 +96,7 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
 
+        /* Push native Leaflet zoom control below the title text */
         .leaflet-top.leaflet-left .leaflet-control-zoom {
             margin-top: 75px;
         }
@@ -130,6 +131,7 @@
 
     <div id="map"></div>
 
+    <!-- Map title — transparent, above zoom controls -->
     <div style="position:absolute;top:10px;left:10px;z-index:1001;pointer-events:none;font-family:sans-serif;">
         <div style="font-size:18px;font-weight:bold;color:#333;">KultVis</div>
         <div style="font-size:16px;color:#555;margin-top:2px;">Visualizing Cultural Values in Urban Planning</div>
@@ -281,6 +283,7 @@
         </div>
         </div>
 
+        <!-- Geography — hidden by default, shown only in global extent view -->
         <div id="geography-section" style="display:none;">
             <hr class="legend-divider">
             <div id="sweden-header" class="legend-group-header">
@@ -305,6 +308,7 @@
             [57.703700110440614, 11.930358409881592],
             [57.71250399593388,  11.952331066131594]
         ]);
+        // Add zoom control below the title text (~50px)
         L.control.zoom({ position: 'topleft' }).addTo(map);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap'
@@ -339,11 +343,13 @@
             document.getElementById('geography-section').style.display = 'none';
         });
 
+        // ── 2. Colors ──────────────────────────────────────────────────────────
         const categoryColors = {
             "Museum": "#e74c3c", "Bibliotek": "#3498db", "Ateljé": "#9b59b6",
             "Biograf": "#f1c40f", "Kulturhus": "#2ecc71", "default": "#95a5a6"
         };
 
+        // ── 3. Campus Buildings ────────────────────────────────────────────────
         var campusData = [
             { name: "Studios building", points: [
                 [57.70951662524695,11.931938382864644],[57.70970176918331,11.932277900706879],
@@ -387,6 +393,7 @@
         });
         map.on('click', function() { buildingList.forEach(function(b){ b.setStyle({ fillOpacity:0.2 }); }); });
 
+        // ── 4. Shapefile ───────────────────────────────────────────────────────
         var categoryLayers = {}, hiddenCategories = new Set();
         async function loadCulturalData() {
             try {
@@ -409,6 +416,7 @@
         }
         loadCulturalData();
 
+        // ── 5. Custom Points ───────────────────────────────────────────────────
         var customPoints = [
             { name:"Karlatornet",                    lat:57.70993302217523,  lng:11.939144656326647 },
             { name:"Backa teater",                   lat:57.7059134823545,   lng:11.935946002968043 },
@@ -528,18 +536,22 @@
                     var lift = len*0.35;
                     var cx = mx-(dy/len)*lift, cy = my+(dx/len)*lift;
 
+                    // Static arc
                     ctx.beginPath(); ctx.moveTo(p0.x,p0.y);
                     ctx.quadraticCurveTo(cx,cy,p1.x,p1.y);
                     ctx.strokeStyle='rgba(26,111,196,0.45)'; ctx.lineWidth=1.5; ctx.stroke();
 
+                    // Pulsing ring
                     var pr = 4+self._pulse*14;
                     ctx.beginPath(); ctx.arc(p0.x,p0.y,pr,0,Math.PI*2);
                     ctx.strokeStyle='rgba(26,111,196,'+((1-self._pulse)*0.8)+')';
                     ctx.lineWidth=2; ctx.stroke();
 
+                    // Source dot
                     ctx.beginPath(); ctx.arc(p0.x,p0.y,4,0,Math.PI*2);
                     ctx.fillStyle='#1a6fc4'; ctx.fill();
 
+                    // Travelling dot
                     var t=self._t, u=1-t;
                     var tx=u*u*p0.x+2*u*t*cx+t*t*p1.x, ty=u*u*p0.y+2*u*t*cy+t*t*p1.y;
                     var t2=Math.max(0,t-0.07), u2=1-t2;
@@ -551,6 +563,8 @@
                     ctx.beginPath(); ctx.arc(tx,ty,4,0,Math.PI*2);
                     ctx.fillStyle='#56b4d3'; ctx.shadowBlur=8; ctx.shadowColor='#56b4d3';
                     ctx.fill(); ctx.shadowBlur=0;
+
+                    // Labels drawn by shared label canvas — not here
                 });
             },
 
@@ -558,6 +572,7 @@
                 var rect = this._map.getContainer().getBoundingClientRect();
                 var mouseX = e.clientX-rect.left, mouseY = e.clientY-rect.top;
 
+                // Check hover over drawn label bounding boxes
                 var labelHit = null;
                 if (window._labelBBoxes) {
                     var PAD = 4;
@@ -570,8 +585,6 @@
                         }
                     });
                 }
-                
-                // CALL THE HIGHLIGHTER
                 if (window.highlightRegionByLabel) window.highlightRegionByLabel(labelHit);
 
                 if (labelHit) {
@@ -595,8 +608,8 @@
             { from:[59.4370,24.7536],  from_label:'Estonia',        to:STUDIOS, to_label:'Studios building', label:true },
             { from:[54.6872,25.2797],  from_label:'Lithuania',      to:STUDIOS, to_label:'Studios building', label:true },
             { from:[35.8997,14.5147],  from_label:'Malta',          to:STUDIOS, to_label:'Studios building', label:true },
-            { from:[51.5074,-0.1278],  from_label:'United Kingdom', to:STUDIOS, to_label:'Studios building', label:true },
-            { from:[38.8951,-77.0369], from_label:'United States of America', to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[51.5074,-0.1278],  from_label:'England',        to:STUDIOS, to_label:'Studios building', label:true },
+            { from:[38.8951,-77.0369], from_label:'USA',            to:STUDIOS, to_label:'Studios building', label:true },
             { from:[52.2297,21.0122],  from_label:'Poland',         to:STUDIOS, to_label:'Studios building', label:true },
             { from:[50.0755,14.4378],  from_label:'Czech Republic', to:STUDIOS, to_label:'Studios building', label:true },
             { from:[48.2082,16.3738],  from_label:'Austria',        to:STUDIOS, to_label:'Studios building', label:true },
@@ -627,6 +640,7 @@
         var concertLarge2Layer = new MigrationLayer(concertLarge2Arcs);
         concertLarge2Layer.addTo(map);
 
+        // FIX: was missing new MigrationLayer() + addTo()
         var concertMedium3Arcs = [
             { from:[59.9139,10.7522], from_label:'Norway',                 to:STUDIOS, to_label:'Studios building', label:true },
             { from:[55.6761,12.5683], from_label:'Denmark',                to:STUDIOS, to_label:'Studios building', label:true },
@@ -635,6 +649,7 @@
         var concertMedium3Layer = new MigrationLayer(concertMedium3Arcs);
         concertMedium3Layer.addTo(map);
 
+        // FIX: was missing new MigrationLayer() + addTo()
         var fairLarge4Arcs = [
             { from:[58.2528,13.0596], from_label:'Region Västra Götaland', to:STUDIOS, to_label:'Studios building', label:true },
             { from:[56.6745,12.8578], from_label:'Halland',                to:STUDIOS, to_label:'Studios building', label:true },
@@ -653,10 +668,11 @@
         var concertMedium5Layer = new MigrationLayer(concertMedium5Arcs);
         concertMedium5Layer.addTo(map);
 
+        // ── Shared label canvas — draws country labels once per frame across all layers ──
         var labelCanvas = document.createElement('canvas');
         labelCanvas.style.position = 'absolute'; labelCanvas.style.top = '0';
         labelCanvas.style.left = '0'; labelCanvas.style.pointerEvents = 'none';
-        labelCanvas.style.zIndex = '451';
+        labelCanvas.style.zIndex = '451'; // above arc canvases (450)
         map.getContainer().appendChild(labelCanvas);
 
         var allMigrationLayers = [
@@ -677,8 +693,8 @@
             ctx.clearRect(0, 0, s.x, s.y);
             ctx.font = 'bold 11px sans-serif';
 
-            var drawn = {};
-            var bboxes = [];
+            var drawn = {};       // label text → {x, y}
+            var bboxes = [];      // [{label, x, y, w, h}] for hit testing
 
             allMigrationLayers.forEach(function(layer) {
                 if (!layer._map) return;
@@ -693,7 +709,7 @@
                     }
                     var metrics = ctx.measureText(arc.from_label);
                     var w = metrics.width;
-                    var h = 12;
+                    var h = 12; // approx cap height for 11px bold sans-serif
                     ctx.fillStyle = '#333';
                     ctx.fillText(arc.from_label, lx, ly);
                     drawn[arc.from_label] = { x: lx, y: ly };
@@ -706,92 +722,99 @@
         }
         requestAnimationFrame(drawLabels);
 
-        var swedenLayer   = null;
-        var regionsLayer  = null;
+        // ── Sweden + Regions layer ─────────────────────────────────────────────
+        // Fetches Sweden border and county (län) boundaries from public GeoJSON CDNs.
+        // VGR (lan_code 14) gets outline only; other highlighted regions get a light fill.
+        var swedenLayer   = null;  // country border
+        var regionsLayer  = null;  // all lan boundaries
         var swedenVisible = true;
-        var labelToLanCodes = {
-            'Region Västra Götaland': ['14'],
-            'Halland':                ['13'],
-            'Skåne':                  ['12'],
-            'Småland':                ['06','07','08']
-        };
-
-        function getActiveLanCodes() {
-            var codes = new Set();
-            var layers = [capoeiraLayer, concertLargeLayer, concertLarge2Layer,
-                          concertMedium3Layer, fairLarge4Layer, concertMedium5Layer];
-            layers.forEach(function(l) {
-                if (!l._map) return;
-                l._arcs.forEach(function(a) {
-                    var mapped = labelToLanCodes[a.from_label];
-                    if (mapped) mapped.forEach(function(c) { codes.add(c); });
-                });
-            });
-            return codes;
-        }
 
         async function loadSwedenLayers() {
             try {
+                // 1. Sweden country border
                 var countryResp = await fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson');
                 var countryData = await countryResp.json();
                 var sweFeature  = countryData.features.find(function(f) {
                     return f.properties.ISO_A3 === 'SWE';
                 });
-                
-                // Keep countries but make them interactive/stylable
-                swedenLayer = L.geoJSON(countryData, {
-                    filter: function(f) { return f.properties.ISO_A3 !== 'SWE'; },
-                    style: { color: '#555', weight: 1.5, fillColor: '#a8c8e8', fillOpacity: 0.08 }
-                }).addTo(map);
+                if (sweFeature) {
+                    swedenLayer = L.geoJSON(sweFeature, {
+                        style: {
+                            color: '#555', weight: 1.5,
+                            fillColor: '#a8c8e8', fillOpacity: 0.08,
+                            dashArray: null
+                        }
+                    }).addTo(map);
+                }
 
+                // 2. All Swedish counties (lan) — no border, fill only on hover + migration highlight
                 var lanResp = await fetch('https://raw.githubusercontent.com/okfse/sweden-geojson/master/swedish_regions.geojson');
                 var lanData = await lanResp.json();
 
+                // Map migration from_labels to lan_codes for reliable matching
+                var labelToLanCodes = {
+                    'Region Västra Götaland': ['14'],
+                    'Halland':                ['13'],
+                    'Skåne':                  ['12'],
+                    'Småland':                ['06','07','08'], // Jönköping, Kronoberg, Kalmar
+                    'Norway':                 [],
+                    'Denmark':                []
+                };
+
+                // Collect lan_codes from all active migration layers
+                function getActiveLanCodes() {
+                    var codes = new Set();
+                    var layers = [capoeiraLayer, concertLargeLayer, concertLarge2Layer,
+                                  concertMedium3Layer, fairLarge4Layer, concertMedium5Layer];
+                    layers.forEach(function(l) {
+                        if (!l._map) return;
+                        l._arcs.forEach(function(a) {
+                            var mapped = labelToLanCodes[a.from_label];
+                            if (mapped) mapped.forEach(function(c) { codes.add(c); });
+                        });
+                    });
+                    return codes;
+                }
+
+                // Hover label tooltip div
                 regionsLayer = L.geoJSON(lanData, {
                     interactive: false,
                     style: function(feature) {
                         var code = feature.properties.lan_code;
                         var highlighted = getActiveLanCodes().has(code);
-                        return { color: 'transparent', weight: 0, fillColor: '#ff6600', fillOpacity: highlighted ? 0.25 : 0 };
+                        return {
+                            color: 'transparent', weight: 0,
+                            fillColor: '#ff6600',
+                            fillOpacity: highlighted ? 0.25 : 0
+                        };
                     }
                 }).addTo(map);
 
                 console.log('Sweden + regions layers loaded.');
-            } catch(e) { console.warn('Sweden layer error:', e); }
+            } catch(e) {
+                console.warn('Sweden layer error:', e);
+            }
         }
         loadSwedenLayers();
 
-        // UNIVERSAL HIGHLIGHTER
+        // Global region highlight — safe to call before layers load
         window.highlightRegionByLabel = function(label) {
-            // 1. Highlight Swedish Regions
-            if (regionsLayer) {
-                var hoveredCodes = new Set();
-                if (label && labelToLanCodes[label]) {
-                    labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
-                }
-                regionsLayer.eachLayer(function(layer) {
-                    var code = layer.feature.properties.lan_code;
-                    var baseHighlight = getActiveLanCodes().has(code);
-                    var hoverHighlight = hoveredCodes.has(code);
-                    layer.setStyle({
-                        fillOpacity: hoverHighlight ? 0.45 : (baseHighlight ? 0.25 : 0)
-                    });
-                });
+            if (!regionsLayer) return;
+            var hoveredCodes = new Set();
+            if (label && labelToLanCodes[label]) {
+                labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
             }
-
-            // 2. Highlight International Countries
-            if (swedenLayer) {
-                swedenLayer.eachLayer(function(layer) {
-                    var countryName = layer.feature.properties.ADMIN || layer.feature.properties.NAME;
-                    var isHovered = (label === countryName);
-                    layer.setStyle({
-                        fillOpacity: isHovered ? 0.4 : 0.08,
-                        weight: isHovered ? 2.5 : 1.5
-                    });
+            regionsLayer.eachLayer(function(layer) {
+                var code = layer.feature.properties.lan_code;
+                var baseHighlight = getActiveLanCodes().has(code);
+                var hoverHighlight = hoveredCodes.has(code);
+                layer.setStyle({
+                    fillOpacity: hoverHighlight ? 0.45 : (baseHighlight ? 0.25 : 0)
                 });
-            }
+            });
         };
 
+        // ── Sweden layer toggle ────────────────────────────────────────────────
         document.getElementById('sweden-header').addEventListener('click', function(e) {
             if (e.target.id === 'sweden-checkbox') return;
             var cb = document.getElementById('sweden-checkbox');
@@ -807,6 +830,7 @@
             document.getElementById('sweden-header').classList.toggle('disabled', !visible);
         }
 
+        // ── 8. Visitors toggle ─────────────────────────────────────────────────
         var capoeiraVisible=true, concertLargeVisible=true, concertLarge2Visible=true;
         var concertMedium3Visible=true, fairLarge4Visible=true, concertMedium5Visible=true;
 
@@ -879,6 +903,7 @@
         });
         visitorsCb.addEventListener('change', function() { setAllVisible(this.checked); });
 
+        // ── 9. Activity widget ─────────────────────────────────────────────────
         document.getElementById('widget-header').addEventListener('click', function() {
             var body=document.getElementById('widget-body'), widget=document.getElementById('activity-widget');
             var toggle=document.getElementById('widget-toggle');
@@ -886,6 +911,7 @@
             widget.classList.toggle('collapsed',collapsed); toggle.textContent=collapsed?'▼':'▲';
         });
 
+        // ── 10. Cultural Sites toggle ──────────────────────────────────────────
         var culturalCollapsed=false, relationscapeCollapsed=false, visitorsCollapsed=false;
         var culturalSitesVisible=true;
 
@@ -923,6 +949,7 @@
             });
         });
 
+        // ── 11. Collapse arrows ────────────────────────────────────────────────
         document.getElementById('cultural-sites-arrow').addEventListener('click', function(e) {
             e.stopPropagation(); culturalCollapsed=!culturalCollapsed;
             document.getElementById('cultural-sites-body').classList.toggle('collapsed',culturalCollapsed);
@@ -939,6 +966,7 @@
             this.classList.toggle('collapsed',visitorsCollapsed);
         });
 
+        // ── 12. Relationscape toggle ───────────────────────────────────────────
         function toggleRelationscape(visible) {
             document.getElementById('relationscape-header').classList.toggle('disabled',!visible);
             if (!relationscapeCollapsed)
