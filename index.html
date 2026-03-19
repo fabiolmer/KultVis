@@ -199,7 +199,7 @@
         </div>
         <div id="relationscape-body" class="legend-group-body">
         <div id="relationscape-group" style="max-height:156px;overflow-y:auto;">
-            <div style="font-size:11px;color:#555;margin-bottom:6px;">Cultural value 1 and 2</div>
+            <div style="font-size:11px;color:#555;margin-bottom:6px;">Cultural values</div>
             <div class="legend-item rel-item" data-index="0"><div class="legend-dot" style="background:#ff6600;"></div> Karlatornet</div>
             <div class="legend-item rel-item" data-index="1"><div class="legend-dot" style="background:#ff6600;"></div> Backa teater</div>
             <div class="legend-item rel-item" data-index="2"><div class="legend-dot" style="background:#ff6600;"></div> Lindholmens manor</div>
@@ -289,7 +289,7 @@
         <div id="geography-section" style="display:none;">
             <hr class="legend-divider">
             <div id="sweden-header" class="legend-group-header">
-                <input type="checkbox" id="sweden-checkbox" checked style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
+                <input type="checkbox" id="sweden-checkbox" style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
                 <h4 style="margin:0;display:inline;cursor:pointer;">Geography</h4>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:13px;">
@@ -727,9 +727,9 @@
         // ── Sweden + Regions layer ─────────────────────────────────────────────
         var swedenLayer   = null;
         var regionsLayer  = null;
-        var swedenVisible = true;
+        var swedenVisible = false; // off by default
 
-        // Hoisted to outer scope so highlightRegionByLabel can access them
+        // Thenmap se-4 uses numeric id (01-25), matching SCB lan codes
         var labelToLanCodes = {
             'Region Västra Götaland': ['14'],
             'Halland':                ['13'],
@@ -755,29 +755,29 @@
 
         async function loadSwedenLayers() {
             try {
-                // 1. Sweden country border via world-atlas TopoJSON on jsDelivr
+                // 1. Sweden country border — world-atlas TopoJSON via jsDelivr
                 var topoResp = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
                 var topoData = await topoResp.json();
-                // Sweden numeric ISO code is 752
                 var sweFeature = topojson.feature(topoData, topoData.objects.countries).features
                     .find(function(f) { return f.id === '752'; });
                 if (sweFeature) {
                     swedenLayer = L.geoJSON(sweFeature, {
                         style: {
-                            color: '#555', weight: 1.5,
-                            fillColor: '#a8c8e8', fillOpacity: 0.08
+                            color: '#888', weight: 1.0, opacity: 0.4,
+                            fill: false
                         }
-                    }).addTo(map);
+                    }); // NOT added to map — off by default
                 }
 
-                // 2. Swedish regions via jsDelivr GitHub proxy
-                var lanResp = await fetch('https://cdn.jsdelivr.net/gh/okfse/sweden-geojson@master/swedish_regions.geojson');
+                // 2. Swedish counties via Thenmap API (se-4 = counties)
+                var lanResp = await fetch('http://api.thenmap.net/v2/se-4/geo/2024');
                 var lanData = await lanResp.json();
 
+                // Thenmap uses feature.id as the county code (zero-padded, e.g. "14")
                 regionsLayer = L.geoJSON(lanData, {
                     interactive: false,
                     style: function(feature) {
-                        var code = feature.properties.lan_code;
+                        var code = (feature.id || feature.properties.id || '').toString().padStart(2,'0');
                         var highlighted = getActiveLanCodes().has(code);
                         return {
                             color: 'transparent', weight: 0,
@@ -785,7 +785,7 @@
                             fillOpacity: highlighted ? 0.25 : 0
                         };
                     }
-                }).addTo(map);
+                }); // NOT added to map — off by default
 
                 console.log('Sweden + regions layers loaded.');
             } catch(e) {
@@ -802,7 +802,7 @@
                 labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
             }
             regionsLayer.eachLayer(function(layer) {
-                var code = layer.feature.properties.lan_code;
+                var code = (layer.feature.id || layer.feature.properties.id || '').toString().padStart(2,'0');
                 var baseHighlight = getActiveLanCodes().has(code);
                 var hoverHighlight = hoveredCodes.has(code);
                 layer.setStyle({
