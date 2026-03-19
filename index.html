@@ -571,12 +571,11 @@
             _handleMouseMove: function(e) {
                 var rect = this._map.getContainer().getBoundingClientRect();
                 var mouseX = e.clientX-rect.left, mouseY = e.clientY-rect.top;
-                var HIT = 6, hit = null;
 
-                // Check hover over drawn label bounding boxes (region highlight only)
+                // Check hover over drawn label bounding boxes
                 var labelHit = null;
                 if (window._labelBBoxes) {
-                    var PAD = 4; // px padding around text
+                    var PAD = 4;
                     window._labelBBoxes.forEach(function(lb) {
                         if (mouseX >= lb.x - PAD &&
                             mouseX <= lb.x + lb.w + PAD &&
@@ -588,37 +587,15 @@
                 }
                 if (window.highlightRegionByLabel) window.highlightRegionByLabel(labelHit);
 
-                // Arc/dot hit detection — tooltip only, no region highlight
-                for (var i = 0; i < this._arcs.length; i++) {
-                    var arc = this._arcs[i];
-                    var p0 = this._project(arc.from), p1 = this._project(arc.to);
-                    var dx = mouseX-p0.x, dy = mouseY-p0.y;
-                    if (Math.sqrt(dx*dx+dy*dy) < HIT+6) { hit = arc.from_label||null; break; }
-                    var mx=(p0.x+p1.x)/2, my=(p0.y+p1.y)/2;
-                    var adx=p1.x-p0.x, ady=p1.y-p0.y;
-                    var len=Math.sqrt(adx*adx+ady*ady);
-                    if (len<1) continue;
-                    var cx=mx-(ady/len)*len*0.35, cy=my+(adx/len)*len*0.35;
-                    for (var s=0; s<=60; s++) {
-                        var tt=s/60, uu=1-tt;
-                        var bx=uu*uu*p0.x+2*uu*tt*cx+tt*tt*p1.x;
-                        var by=uu*uu*p0.y+2*uu*tt*cy+tt*tt*p1.y;
-                        if (Math.sqrt((mouseX-bx)*(mouseX-bx)+(mouseY-by)*(mouseY-by))<HIT) {
-                            hit=arc.from_label||null; break;
-                        }
-                    }
-                    if (hit) break;
-                }
-
-                if (hit || labelHit) {
-                    this._tooltip.textContent = hit || labelHit;
-                    this._tooltip.style.display='block';
-                    this._tooltip.style.left=(e.clientX+14)+'px';
-                    this._tooltip.style.top=(e.clientY-10)+'px';
-                    this._map.getContainer().style.cursor='pointer';
+                if (labelHit) {
+                    this._tooltip.textContent = labelHit;
+                    this._tooltip.style.display = 'block';
+                    this._tooltip.style.left = (e.clientX+14)+'px';
+                    this._tooltip.style.top  = (e.clientY-10)+'px';
+                    this._map.getContainer().style.cursor = 'pointer';
                 } else {
-                    this._tooltip.style.display='none';
-                    this._map.getContainer().style.cursor='';
+                    this._tooltip.style.display = 'none';
+                    this._map.getContainer().style.cursor = '';
                 }
             }
         });
@@ -813,31 +790,29 @@
                     }
                 }).addTo(map);
 
-                // Global function called by migration layer hover to fill matching regions
-                var currentHoveredLabel = null;
-                window.highlightRegionByLabel = function(label) {
-                    if (label === currentHoveredLabel) return;
-                    currentHoveredLabel = label;
-                    var hoveredCodes = new Set();
-                    if (label && labelToLanCodes[label]) {
-                        labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
-                    }
-                    regionsLayer.eachLayer(function(layer) {
-                        var code = layer.feature.properties.lan_code;
-                        var baseHighlight = getActiveLanCodes().has(code);
-                        var hoverHighlight = hoveredCodes.has(code);
-                        layer.setStyle({
-                            fillOpacity: hoverHighlight ? 0.45 : (baseHighlight ? 0.25 : 0)
-                        });
-                    });
-                };
-
                 console.log('Sweden + regions layers loaded.');
             } catch(e) {
                 console.warn('Sweden layer error:', e);
             }
         }
         loadSwedenLayers();
+
+        // Global region highlight — safe to call before layers load
+        window.highlightRegionByLabel = function(label) {
+            if (!regionsLayer) return;
+            var hoveredCodes = new Set();
+            if (label && labelToLanCodes[label]) {
+                labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
+            }
+            regionsLayer.eachLayer(function(layer) {
+                var code = layer.feature.properties.lan_code;
+                var baseHighlight = getActiveLanCodes().has(code);
+                var hoverHighlight = hoveredCodes.has(code);
+                layer.setStyle({
+                    fillOpacity: hoverHighlight ? 0.45 : (baseHighlight ? 0.25 : 0)
+                });
+            });
+        };
 
         // ── Sweden layer toggle ────────────────────────────────────────────────
         document.getElementById('sweden-header').addEventListener('click', function(e) {
