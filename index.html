@@ -576,9 +576,12 @@
                 // Check hover over drawn label bounding boxes (region highlight only)
                 var labelHit = null;
                 if (window._labelBBoxes) {
+                    var PAD = 4; // px padding around text
                     window._labelBBoxes.forEach(function(lb) {
-                        if (mouseX >= lb.x && mouseX <= lb.x + lb.w &&
-                            mouseY >= lb.y - lb.h && mouseY <= lb.y) {
+                        if (mouseX >= lb.x - PAD &&
+                            mouseX <= lb.x + lb.w + PAD &&
+                            mouseY >= lb.y - lb.h - PAD &&
+                            mouseY <= lb.y + PAD) {
                             labelHit = lb.label;
                         }
                     });
@@ -727,8 +730,9 @@
                         var dist = Math.sqrt((lx-prev.x)*(lx-prev.x)+(ly-prev.y)*(ly-prev.y));
                         if (dist < 5) return;
                     }
-                    var w = ctx.measureText(arc.from_label).width;
-                    var h = 11; // approx font height
+                    var metrics = ctx.measureText(arc.from_label);
+                    var w = metrics.width;
+                    var h = 12; // approx cap height for 11px bold sans-serif
                     ctx.fillStyle = '#333';
                     ctx.fillText(arc.from_label, lx, ly);
                     drawn[arc.from_label] = { x: lx, y: ly };
@@ -797,14 +801,14 @@
 
                 // Hover label tooltip div
                 regionsLayer = L.geoJSON(lanData, {
+                    interactive: false,
                     style: function(feature) {
                         var code = feature.properties.lan_code;
                         var highlighted = getActiveLanCodes().has(code);
                         return {
                             color: 'transparent', weight: 0,
                             fillColor: '#ff6600',
-                            fillOpacity: highlighted ? 0.12 : 0,
-                            interactive: false
+                            fillOpacity: highlighted ? 0.12 : 0
                         };
                     }
                 }).addTo(map);
