@@ -796,20 +796,6 @@
                 }
 
                 // Hover label tooltip div
-                var regionTooltip = document.createElement('div');
-                regionTooltip.style.cssText = 'position:fixed;z-index:9999;background:rgba(255,255,255,0.92);border:0.4px solid #999;border-radius:4px;padding:4px 8px;font-family:sans-serif;font-size:12px;font-weight:bold;color:#333;pointer-events:none;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);display:none;';
-                document.body.appendChild(regionTooltip);
-
-                // Friendly display names for lan_code
-                var lanNames = {
-                    '01':'Stockholm','03':'Uppsala','04':'Södermanland','05':'Östergötland',
-                    '06':'Jönköping','07':'Kronoberg','08':'Kalmar','09':'Gotland',
-                    '10':'Blekinge','12':'Skåne','13':'Halland','14':'Västra Götaland',
-                    '17':'Värmland','18':'Örebro','19':'Västmanland','20':'Dalarna',
-                    '21':'Gävleborg','22':'Västernorrland','23':'Jämtland',
-                    '24':'Västerbotten','25':'Norrbotten'
-                };
-
                 regionsLayer = L.geoJSON(lanData, {
                     style: function(feature) {
                         var code = feature.properties.lan_code;
@@ -817,29 +803,9 @@
                         return {
                             color: 'transparent', weight: 0,
                             fillColor: '#ff6600',
-                            fillOpacity: highlighted ? 0.12 : 0
+                            fillOpacity: highlighted ? 0.12 : 0,
+                            interactive: false
                         };
-                    },
-                    onEachFeature: function(feature, layer) {
-                        var code = feature.properties.lan_code;
-                        var displayName = lanNames[code] || (feature.properties.name || '').replace(' län','');
-
-                        layer.on('mouseover', function(e) {
-                            layer.setStyle({ fillOpacity: 0.28 });
-                            regionTooltip.textContent = displayName;
-                            regionTooltip.style.display = 'block';
-                            regionTooltip.style.left = (e.originalEvent.clientX + 14) + 'px';
-                            regionTooltip.style.top  = (e.originalEvent.clientY - 10) + 'px';
-                        });
-                        layer.on('mousemove', function(e) {
-                            regionTooltip.style.left = (e.originalEvent.clientX + 14) + 'px';
-                            regionTooltip.style.top  = (e.originalEvent.clientY - 10) + 'px';
-                        });
-                        layer.on('mouseout', function() {
-                            var highlighted = getActiveLanCodes().has(code);
-                            layer.setStyle({ fillOpacity: highlighted ? 0.12 : 0 });
-                            regionTooltip.style.display = 'none';
-                        });
                     }
                 }).addTo(map);
 
