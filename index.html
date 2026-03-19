@@ -573,6 +573,19 @@
                 var mouseX = e.clientX-rect.left, mouseY = e.clientY-rect.top;
                 var HIT = 6, hit = null;
 
+                // Check hover over drawn label bounding boxes (region highlight only)
+                var labelHit = null;
+                if (window._labelBBoxes) {
+                    window._labelBBoxes.forEach(function(lb) {
+                        if (mouseX >= lb.x && mouseX <= lb.x + lb.w &&
+                            mouseY >= lb.y - lb.h && mouseY <= lb.y) {
+                            labelHit = lb.label;
+                        }
+                    });
+                }
+                if (window.highlightRegionByLabel) window.highlightRegionByLabel(labelHit);
+
+                // Arc/dot hit detection — tooltip only, no region highlight
                 for (var i = 0; i < this._arcs.length; i++) {
                     var arc = this._arcs[i];
                     var p0 = this._project(arc.from), p1 = this._project(arc.to);
@@ -594,14 +607,15 @@
                     if (hit) break;
                 }
 
-                if (hit) {
-                    this._tooltip.textContent=hit; this._tooltip.style.display='block';
-                    this._tooltip.style.left=(e.clientX+14)+'px'; this._tooltip.style.top=(e.clientY-10)+'px';
+                if (hit || labelHit) {
+                    this._tooltip.textContent = hit || labelHit;
+                    this._tooltip.style.display='block';
+                    this._tooltip.style.left=(e.clientX+14)+'px';
+                    this._tooltip.style.top=(e.clientY-10)+'px';
                     this._map.getContainer().style.cursor='pointer';
-                    if (window.highlightRegionByLabel) window.highlightRegionByLabel(hit);
                 } else {
-                    this._tooltip.style.display='none'; this._map.getContainer().style.cursor='';
-                    if (window.highlightRegionByLabel) window.highlightRegionByLabel(null);
+                    this._tooltip.style.display='none';
+                    this._map.getContainer().style.cursor='';
                 }
             }
         });
@@ -699,10 +713,11 @@
             ctx.clearRect(0, 0, s.x, s.y);
             ctx.font = 'bold 11px sans-serif';
 
-            var drawn = {}; // label text → {x, y}
+            var drawn = {};       // label text → {x, y}
+            var bboxes = [];      // [{label, x, y, w, h}] for hit testing
 
             allMigrationLayers.forEach(function(layer) {
-                if (!layer._map) return; // layer not on map (toggled off)
+                if (!layer._map) return;
                 layer._arcs.forEach(function(arc) {
                     if (!arc.label || !arc.from_label) return;
                     var p0 = layer._project(arc.from);
@@ -710,14 +725,18 @@
                     var prev = drawn[arc.from_label];
                     if (prev) {
                         var dist = Math.sqrt((lx-prev.x)*(lx-prev.x)+(ly-prev.y)*(ly-prev.y));
-                        if (dist < 5) return; // same spot — skip
+                        if (dist < 5) return;
                     }
+                    var w = ctx.measureText(arc.from_label).width;
+                    var h = 11; // approx font height
                     ctx.fillStyle = '#333';
                     ctx.fillText(arc.from_label, lx, ly);
                     drawn[arc.from_label] = { x: lx, y: ly };
+                    bboxes.push({ label: arc.from_label, x: lx, y: ly, w: w, h: h });
                 });
             });
 
+            window._labelBBoxes = bboxes;
             requestAnimationFrame(drawLabels);
         }
         requestAnimationFrame(drawLabels);
