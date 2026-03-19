@@ -5,7 +5,6 @@
     <title>Leaflet Map - Gothenburg Cultural Activities</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shpjs/3.6.3/shp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -239,7 +238,6 @@
             <h4 style="margin:0;display:inline;cursor:pointer;">Visitors</h4>
             <span class="legend-collapse-arrow" id="visitors-arrow">▼</span>
         </div>
-        <div style="font-size:10px;color:#888;margin-bottom:6px;margin-top:-4px;">Click on 🌐 to see the reach of the event</div>
         <div id="visitors-body" class="legend-group-body">
         <div id="capoeira-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="capoeira-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
@@ -284,21 +282,6 @@
             <button id="concert-medium5-toggle-btn" title="Toggle Concert Medium #5" style="flex-shrink:0;width:14px;height:14px;border-radius:50%;border:1px solid #aaa;background:#1a6fc4;cursor:pointer;padding:0;transition:background 0.2s,border-color 0.2s;"></button>
         </div>
         </div>
-
-        <!-- Geography — hidden by default, shown only in global extent view -->
-        <div id="geography-section" style="display:none;">
-            <hr class="legend-divider">
-            <div id="sweden-header" class="legend-group-header">
-                <input type="checkbox" id="sweden-checkbox" style="cursor:pointer;margin:0;accent-color:#c8d8d8;width:14px;height:14px;">
-                <h4 style="margin:0;display:inline;cursor:pointer;">Geography</h4>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:13px;">
-                <div style="width:22px;height:3px;background:#555;border-radius:2px;flex-shrink:0;"></div> Sweden
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
-                <div style="width:22px;height:10px;background:rgba(255,102,0,0.2);border-radius:2px;flex-shrink:0;"></div> Regions
-            </div>
-        </div>
     </div>
 
     <script>
@@ -334,7 +317,6 @@
                 points.push(STUDIOS);
                 map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 10 });
             }
-            document.getElementById('geography-section').style.display = 'block';
         });
 
         document.getElementById('btn-zoom-local').addEventListener('click', function() {
@@ -342,7 +324,6 @@
                 [57.703700110440614, 11.930358409881592],
                 [57.71250399593388,  11.952331066131594]
             ], { animate: true });
-            document.getElementById('geography-section').style.display = 'none';
         });
 
         // ── 2. Colors ──────────────────────────────────────────────────────────
@@ -587,7 +568,6 @@
                         }
                     });
                 }
-                if (window.highlightRegionByLabel) window.highlightRegionByLabel(labelHit);
 
                 if (labelHit) {
                     this._tooltip.textContent = labelHit;
@@ -723,109 +703,6 @@
             requestAnimationFrame(drawLabels);
         }
         requestAnimationFrame(drawLabels);
-
-        // ── Sweden + Regions layer ─────────────────────────────────────────────
-        var swedenLayer   = null;
-        var regionsLayer  = null;
-        var swedenVisible = false; // off by default
-
-        // Thenmap se-4 uses numeric id (01-25), matching SCB lan codes
-        var labelToLanCodes = {
-            'Region Västra Götaland': ['14'],
-            'Halland':                ['13'],
-            'Skåne':                  ['12'],
-            'Småland':                ['06','07','08'],
-            'Norway':                 [],
-            'Denmark':                []
-        };
-
-        function getActiveLanCodes() {
-            var codes = new Set();
-            var layers = [capoeiraLayer, concertLargeLayer, concertLarge2Layer,
-                          concertMedium3Layer, fairLarge4Layer, concertMedium5Layer];
-            layers.forEach(function(l) {
-                if (!l._map) return;
-                l._arcs.forEach(function(a) {
-                    var mapped = labelToLanCodes[a.from_label];
-                    if (mapped) mapped.forEach(function(c) { codes.add(c); });
-                });
-            });
-            return codes;
-        }
-
-        async function loadSwedenLayers() {
-            try {
-                // 1. Sweden country border — world-atlas TopoJSON via jsDelivr
-                var topoResp = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
-                var topoData = await topoResp.json();
-                var sweFeature = topojson.feature(topoData, topoData.objects.countries).features
-                    .find(function(f) { return f.id === '752'; });
-                if (sweFeature) {
-                    swedenLayer = L.geoJSON(sweFeature, {
-                        style: {
-                            color: '#888', weight: 1.0, opacity: 0.4,
-                            fill: false
-                        }
-                    }); // NOT added to map — off by default
-                }
-
-                // 2. Swedish counties via Thenmap API (se-4 = counties)
-                var lanResp = await fetch('http://api.thenmap.net/v2/se-4/geo/2024');
-                var lanData = await lanResp.json();
-
-                // Thenmap uses feature.id as the county code (zero-padded, e.g. "14")
-                regionsLayer = L.geoJSON(lanData, {
-                    interactive: false,
-                    style: function(feature) {
-                        var code = (feature.id || feature.properties.id || '').toString().padStart(2,'0');
-                        var highlighted = getActiveLanCodes().has(code);
-                        return {
-                            color: 'transparent', weight: 0,
-                            fillColor: '#ff6600',
-                            fillOpacity: highlighted ? 0.25 : 0
-                        };
-                    }
-                }); // NOT added to map — off by default
-
-                console.log('Sweden + regions layers loaded.');
-            } catch(e) {
-                console.warn('Sweden layer error:', e);
-            }
-        }
-        loadSwedenLayers();
-
-        // Global region highlight — safe to call before layers load
-        window.highlightRegionByLabel = function(label) {
-            if (!regionsLayer) return;
-            var hoveredCodes = new Set();
-            if (label && labelToLanCodes[label]) {
-                labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
-            }
-            regionsLayer.eachLayer(function(layer) {
-                var code = (layer.feature.id || layer.feature.properties.id || '').toString().padStart(2,'0');
-                var baseHighlight = getActiveLanCodes().has(code);
-                var hoverHighlight = hoveredCodes.has(code);
-                layer.setStyle({
-                    fillOpacity: hoverHighlight ? 0.45 : (baseHighlight ? 0.25 : 0)
-                });
-            });
-        };
-
-        // ── Sweden layer toggle ────────────────────────────────────────────────
-        document.getElementById('sweden-header').addEventListener('click', function(e) {
-            if (e.target.id === 'sweden-checkbox') return;
-            var cb = document.getElementById('sweden-checkbox');
-            cb.checked = !cb.checked; toggleSweden(cb.checked);
-        });
-        document.getElementById('sweden-checkbox').addEventListener('change', function() {
-            toggleSweden(this.checked);
-        });
-        function toggleSweden(visible) {
-            swedenVisible = visible;
-            if (swedenLayer)  { visible ? swedenLayer.addTo(map)  : map.removeLayer(swedenLayer);  }
-            if (regionsLayer) { visible ? regionsLayer.addTo(map) : map.removeLayer(regionsLayer); }
-            document.getElementById('sweden-header').classList.toggle('disabled', !visible);
-        }
 
         // ── 8. Visitors toggle ─────────────────────────────────────────────────
         var capoeiraVisible=true, concertLargeVisible=true, concertLarge2Visible=true;
