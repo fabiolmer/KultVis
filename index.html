@@ -808,7 +808,7 @@
                         return {
                             color: 'transparent', weight: 0,
                             fillColor: '#ff6600',
-                            fillOpacity: highlighted ? 0.12 : 0
+                            fillOpacity: highlighted ? 0.25 : 0
                         };
                     }
                 }).addTo(map);
@@ -827,7 +827,7 @@
                         var baseHighlight = getActiveLanCodes().has(code);
                         var hoverHighlight = hoveredCodes.has(code);
                         layer.setStyle({
-                            fillOpacity: hoverHighlight ? 0.35 : (baseHighlight ? 0.12 : 0)
+                            fillOpacity: hoverHighlight ? 0.45 : (baseHighlight ? 0.25 : 0)
                         });
                     });
                 };
