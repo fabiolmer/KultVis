@@ -5,6 +5,7 @@
     <title>Leaflet Map - Gothenburg Cultural Activities</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shpjs/3.6.3/shp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -754,12 +755,12 @@
 
         async function loadSwedenLayers() {
             try {
-                // 1. Sweden country border
-                var countryResp = await fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson');
-                var countryData = await countryResp.json();
-                var sweFeature  = countryData.features.find(function(f) {
-                    return f.properties.ISO_A3 === 'SWE';
-                });
+                // 1. Sweden country border via world-atlas TopoJSON on jsDelivr
+                var topoResp = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+                var topoData = await topoResp.json();
+                // Sweden numeric ISO code is 752
+                var sweFeature = topojson.feature(topoData, topoData.objects.countries).features
+                    .find(function(f) { return f.id === '752'; });
                 if (sweFeature) {
                     swedenLayer = L.geoJSON(sweFeature, {
                         style: {
@@ -769,8 +770,8 @@
                     }).addTo(map);
                 }
 
-                // 2. All Swedish counties (lan)
-                var lanResp = await fetch('https://raw.githubusercontent.com/okfse/sweden-geojson/master/swedish_regions.geojson');
+                // 2. Swedish regions via jsDelivr GitHub proxy
+                var lanResp = await fetch('https://cdn.jsdelivr.net/gh/okfse/sweden-geojson@master/swedish_regions.geojson');
                 var lanData = await lanResp.json();
 
                 regionsLayer = L.geoJSON(lanData, {
