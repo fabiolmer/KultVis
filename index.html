@@ -510,6 +510,17 @@
                 var self = this;
                 ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
+                // Global label registry shared across all layer instances this frame.
+                // Keys are label text; values are {x, y} of where it was drawn.
+                // Reset once per rAF tick by the first layer to draw.
+                var container = this._map.getContainer();
+                if (!container._migrationLabelFrame || container._migrationLabelFrame !== self._rafId) {
+                    container._migrationLabelFrame  = self._rafId;
+                    container._migrationDrawnLabels = {};
+                }
+                var globalLabels = container._migrationDrawnLabels;
+                var LABEL_DIST = 40; // px — min distance between same label text
+
                 this._arcs.forEach(function(arc) {
                     var p0 = self._project(arc.from), p1 = self._project(arc.to);
                     var mx = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
@@ -547,10 +558,18 @@
                     ctx.fillStyle='#56b4d3'; ctx.shadowBlur=8; ctx.shadowColor='#56b4d3';
                     ctx.fill(); ctx.shadowBlur=0;
 
-                    // from_label only — Studios building label removed from canvas
+                    // from_label — skip if same label already drawn nearby by any layer
                     if (arc.label && arc.from_label) {
-                        ctx.font='bold 11px sans-serif'; ctx.fillStyle='#333';
-                        ctx.fillText(arc.from_label, p0.x+8, p0.y-8);
+                        var lx = p0.x + 8, ly = p0.y - 8;
+                        var key = arc.from_label;
+                        var prev = globalLabels[key];
+                        var tooClose = prev &&
+                            Math.sqrt((lx-prev.x)*(lx-prev.x) + (ly-prev.y)*(ly-prev.y)) < LABEL_DIST;
+                        if (!tooClose) {
+                            ctx.font='bold 11px sans-serif'; ctx.fillStyle='#333';
+                            ctx.fillText(arc.from_label, lx, ly);
+                            globalLabels[key] = { x: lx, y: ly };
+                        }
                     }
                 });
             },
