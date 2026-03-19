@@ -510,17 +510,6 @@
                 var self = this;
                 ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-                // Global label registry shared across all layer instances this frame.
-                // Keys are label text; values are {x, y} of where it was drawn.
-                // Reset once per rAF tick by the first layer to draw.
-                var container = this._map.getContainer();
-                if (!container._migrationLabelFrame || container._migrationLabelFrame !== self._rafId) {
-                    container._migrationLabelFrame  = self._rafId;
-                    container._migrationDrawnLabels = {};
-                }
-                var globalLabels = container._migrationDrawnLabels;
-                var LABEL_DIST = 40; // px — min distance between same label text
-
                 this._arcs.forEach(function(arc) {
                     var p0 = self._project(arc.from), p1 = self._project(arc.to);
                     var mx = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
@@ -558,19 +547,7 @@
                     ctx.fillStyle='#56b4d3'; ctx.shadowBlur=8; ctx.shadowColor='#56b4d3';
                     ctx.fill(); ctx.shadowBlur=0;
 
-                    // from_label — skip if same label already drawn nearby by any layer
-                    if (arc.label && arc.from_label) {
-                        var lx = p0.x + 8, ly = p0.y - 8;
-                        var key = arc.from_label;
-                        var prev = globalLabels[key];
-                        var tooClose = prev &&
-                            Math.sqrt((lx-prev.x)*(lx-prev.x) + (ly-prev.y)*(ly-prev.y)) < LABEL_DIST;
-                        if (!tooClose) {
-                            ctx.font='bold 11px sans-serif'; ctx.fillStyle='#333';
-                            ctx.fillText(arc.from_label, lx, ly);
-                            globalLabels[key] = { x: lx, y: ly };
-                        }
-                    }
+                    // Labels drawn by shared label canvas — not here
                 });
             },
 
@@ -677,6 +654,54 @@
         ];
         var concertMedium5Layer = new MigrationLayer(concertMedium5Arcs);
         concertMedium5Layer.addTo(map);
+
+        // ── Shared label canvas — draws country labels once per frame across all layers ──
+        var labelCanvas = document.createElement('canvas');
+        labelCanvas.style.position = 'absolute'; labelCanvas.style.top = '0';
+        labelCanvas.style.left = '0'; labelCanvas.style.pointerEvents = 'none';
+        labelCanvas.style.zIndex = '451'; // above arc canvases (450)
+        map.getContainer().appendChild(labelCanvas);
+
+        var allMigrationLayers = [
+            capoeiraLayer, concertLargeLayer, concertLarge2Layer,
+            concertMedium3Layer, fairLarge4Layer, concertMedium5Layer
+        ];
+
+        function resizeLabelCanvas() {
+            var s = map.getSize();
+            labelCanvas.width = s.x; labelCanvas.height = s.y;
+        }
+        resizeLabelCanvas();
+        map.on('resize', resizeLabelCanvas);
+
+        function drawLabels() {
+            var s = map.getSize();
+            var ctx = labelCanvas.getContext('2d');
+            ctx.clearRect(0, 0, s.x, s.y);
+            ctx.font = 'bold 11px sans-serif';
+
+            var drawn = {}; // label text → {x, y}
+
+            allMigrationLayers.forEach(function(layer) {
+                if (!layer._map) return; // layer not on map (toggled off)
+                layer._arcs.forEach(function(arc) {
+                    if (!arc.label || !arc.from_label) return;
+                    var p0 = layer._project(arc.from);
+                    var lx = p0.x + 8, ly = p0.y - 8;
+                    var prev = drawn[arc.from_label];
+                    if (prev) {
+                        var dist = Math.sqrt((lx-prev.x)*(lx-prev.x)+(ly-prev.y)*(ly-prev.y));
+                        if (dist < 5) return; // same spot — skip
+                    }
+                    ctx.fillStyle = '#333';
+                    ctx.fillText(arc.from_label, lx, ly);
+                    drawn[arc.from_label] = { x: lx, y: ly };
+                });
+            });
+
+            requestAnimationFrame(drawLabels);
+        }
+        requestAnimationFrame(drawLabels);
 
         // ── 8. Visitors toggle ─────────────────────────────────────────────────
         var capoeiraVisible=true, concertLargeVisible=true, concertLarge2Visible=true;
