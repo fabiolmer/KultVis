@@ -238,6 +238,7 @@
             <h4 style="margin:0;display:inline;cursor:pointer;">Visitors</h4>
             <span class="legend-collapse-arrow" id="visitors-arrow">▼</span>
         </div>
+        <div style="font-size:10px;color:#888;margin-bottom:6px;margin-top:-4px;">Click on 🌐 to see the reach of the event</div>
         <div id="visitors-body" class="legend-group-body">
         <div id="capoeira-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;">
             <div id="capoeira-label" class="legend-item" style="display:flex;align-items:center;font-size:13px;margin-bottom:0;cursor:default;">
@@ -723,11 +724,33 @@
         requestAnimationFrame(drawLabels);
 
         // ── Sweden + Regions layer ─────────────────────────────────────────────
-        // Fetches Sweden border and county (län) boundaries from public GeoJSON CDNs.
-        // VGR (lan_code 14) gets outline only; other highlighted regions get a light fill.
-        var swedenLayer   = null;  // country border
-        var regionsLayer  = null;  // all lan boundaries
+        var swedenLayer   = null;
+        var regionsLayer  = null;
         var swedenVisible = true;
+
+        // Hoisted to outer scope so highlightRegionByLabel can access them
+        var labelToLanCodes = {
+            'Region Västra Götaland': ['14'],
+            'Halland':                ['13'],
+            'Skåne':                  ['12'],
+            'Småland':                ['06','07','08'],
+            'Norway':                 [],
+            'Denmark':                []
+        };
+
+        function getActiveLanCodes() {
+            var codes = new Set();
+            var layers = [capoeiraLayer, concertLargeLayer, concertLarge2Layer,
+                          concertMedium3Layer, fairLarge4Layer, concertMedium5Layer];
+            layers.forEach(function(l) {
+                if (!l._map) return;
+                l._arcs.forEach(function(a) {
+                    var mapped = labelToLanCodes[a.from_label];
+                    if (mapped) mapped.forEach(function(c) { codes.add(c); });
+                });
+            });
+            return codes;
+        }
 
         async function loadSwedenLayers() {
             try {
@@ -741,42 +764,15 @@
                     swedenLayer = L.geoJSON(sweFeature, {
                         style: {
                             color: '#555', weight: 1.5,
-                            fillColor: '#a8c8e8', fillOpacity: 0.08,
-                            dashArray: null
+                            fillColor: '#a8c8e8', fillOpacity: 0.08
                         }
                     }).addTo(map);
                 }
 
-                // 2. All Swedish counties (lan) — no border, fill only on hover + migration highlight
+                // 2. All Swedish counties (lan)
                 var lanResp = await fetch('https://raw.githubusercontent.com/okfse/sweden-geojson/master/swedish_regions.geojson');
                 var lanData = await lanResp.json();
 
-                // Map migration from_labels to lan_codes for reliable matching
-                var labelToLanCodes = {
-                    'Region Västra Götaland': ['14'],
-                    'Halland':                ['13'],
-                    'Skåne':                  ['12'],
-                    'Småland':                ['06','07','08'], // Jönköping, Kronoberg, Kalmar
-                    'Norway':                 [],
-                    'Denmark':                []
-                };
-
-                // Collect lan_codes from all active migration layers
-                function getActiveLanCodes() {
-                    var codes = new Set();
-                    var layers = [capoeiraLayer, concertLargeLayer, concertLarge2Layer,
-                                  concertMedium3Layer, fairLarge4Layer, concertMedium5Layer];
-                    layers.forEach(function(l) {
-                        if (!l._map) return;
-                        l._arcs.forEach(function(a) {
-                            var mapped = labelToLanCodes[a.from_label];
-                            if (mapped) mapped.forEach(function(c) { codes.add(c); });
-                        });
-                    });
-                    return codes;
-                }
-
-                // Hover label tooltip div
                 regionsLayer = L.geoJSON(lanData, {
                     interactive: false,
                     style: function(feature) {
