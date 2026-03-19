@@ -598,8 +598,10 @@
                     this._tooltip.textContent=hit; this._tooltip.style.display='block';
                     this._tooltip.style.left=(e.clientX+14)+'px'; this._tooltip.style.top=(e.clientY-10)+'px';
                     this._map.getContainer().style.cursor='pointer';
+                    if (window.highlightRegionByLabel) window.highlightRegionByLabel(hit);
                 } else {
                     this._tooltip.style.display='none'; this._map.getContainer().style.cursor='';
+                    if (window.highlightRegionByLabel) window.highlightRegionByLabel(null);
                 }
             }
         });
@@ -821,6 +823,25 @@
                         });
                     }
                 }).addTo(map);
+
+                // Global function called by migration layer hover to fill matching regions
+                var currentHoveredLabel = null;
+                window.highlightRegionByLabel = function(label) {
+                    if (label === currentHoveredLabel) return;
+                    currentHoveredLabel = label;
+                    var hoveredCodes = new Set();
+                    if (label && labelToLanCodes[label]) {
+                        labelToLanCodes[label].forEach(function(c) { hoveredCodes.add(c); });
+                    }
+                    regionsLayer.eachLayer(function(layer) {
+                        var code = layer.feature.properties.lan_code;
+                        var baseHighlight = getActiveLanCodes().has(code);
+                        var hoverHighlight = hoveredCodes.has(code);
+                        layer.setStyle({
+                            fillOpacity: hoverHighlight ? 0.35 : (baseHighlight ? 0.12 : 0)
+                        });
+                    });
+                };
 
                 console.log('Sweden + regions layers loaded.');
             } catch(e) {
