@@ -294,7 +294,7 @@
                 <div style="width:22px;height:3px;background:#555;border-radius:2px;flex-shrink:0;"></div> Sweden
             </div>
             <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
-                <div style="width:22px;height:3px;background:#ff6600;border-radius:2px;flex-shrink:0;"></div> Regions
+                <div style="width:22px;height:10px;background:rgba(255,102,0,0.2);border-radius:2px;flex-shrink:0;"></div> Regions
             </div>
         </div>
     </div>
@@ -745,24 +745,68 @@
                     }).addTo(map);
                 }
 
-                // 2. All Swedish counties (lan) — VGR outline only, rest with light fill
+                // 2. All Swedish counties (lan) — no border, fill only on hover + migration highlight
                 var lanResp = await fetch('https://raw.githubusercontent.com/okfse/sweden-geojson/master/swedish_regions.geojson');
                 var lanData = await lanResp.json();
 
+                // Hover label tooltip div
+                var regionTooltip = document.createElement('div');
+                regionTooltip.style.cssText = 'position:fixed;z-index:9999;background:rgba(255,255,255,0.92);border:0.4px solid #999;border-radius:4px;padding:4px 8px;font-family:sans-serif;font-size:12px;font-weight:bold;color:#333;pointer-events:none;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.2);display:none;';
+                document.body.appendChild(regionTooltip);
+
+                // Collect all active migration from_labels for highlighting
+                function getMigrationRegionNames() {
+                    var names = new Set();
+                    var layers = [capoeiraLayer, concertLargeLayer, concertLarge2Layer,
+                                  concertMedium3Layer, fairLarge4Layer, concertMedium5Layer];
+                    layers.forEach(function(l) {
+                        if (!l._map) return;
+                        l._arcs.forEach(function(a) { if (a.from_label) names.add(a.from_label); });
+                    });
+                    return names;
+                }
+
                 regionsLayer = L.geoJSON(lanData, {
                     style: function(feature) {
+                        // No border; check if region name matches any active migration layer
+                        var name = feature.properties.name || '';
+                        var migNames = getMigrationRegionNames();
+                        // Match: e.g. "Västra Götalands län" contains "Västra Götaland"
+                        var isHighlighted = false;
+                        migNames.forEach(function(mn) {
+                            if (name.indexOf(mn) !== -1 || mn.indexOf(name.replace(' län','').trim()) !== -1) {
+                                isHighlighted = true;
+                            }
+                        });
                         return {
-                            color: '#ff6600', weight: 1.2,
-                            fillColor: '#ff6600', fillOpacity: 0
+                            color: 'transparent', weight: 0,
+                            fillColor: '#ff6600',
+                            fillOpacity: isHighlighted ? 0.12 : 0
                         };
                     },
                     onEachFeature: function(feature, layer) {
-                        var isVGR = feature.properties.lan_code === '14';
-                        layer.on('mouseover', function() {
-                            if (!isVGR) layer.setStyle({ fillOpacity: 0.15 });
+                        var regionName = (feature.properties.name || '').replace(' län', '');
+
+                        layer.on('mouseover', function(e) {
+                            layer.setStyle({ fillOpacity: 0.25 });
+                            regionTooltip.textContent = regionName;
+                            regionTooltip.style.display = 'block';
+                        });
+                        layer.on('mousemove', function(e) {
+                            regionTooltip.style.left = (e.originalEvent.clientX + 14) + 'px';
+                            regionTooltip.style.top  = (e.originalEvent.clientY - 10) + 'px';
                         });
                         layer.on('mouseout', function() {
-                            layer.setStyle({ fillOpacity: 0 });
+                            // Restore highlight or transparent
+                            var name = feature.properties.name || '';
+                            var migNames = getMigrationRegionNames();
+                            var isHighlighted = false;
+                            migNames.forEach(function(mn) {
+                                if (name.indexOf(mn) !== -1 || mn.indexOf(name.replace(' län','').trim()) !== -1)
+                                    isHighlighted = true;
+                            });
+                            layer.setStyle({ fillOpacity: isHighlighted ? 0.12 : 0 });
+                            regionTooltip.style.display = 'none';
                         });
                     }
                 }).addTo(map);
